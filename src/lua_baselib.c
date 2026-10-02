@@ -359,6 +359,22 @@ static int lib_tofixed(lua_State *L)
 	return 1;
 }
 
+static int lib_loadstring(lua_State *L)
+{
+    /* Based on the 'luaB_loadstring' and 'load_aux' functions from Lua 5.1's lbaselib.c */
+    size_t l;
+    const char *s = luaL_checklstring(L, 1, &l);
+    const char *chunkname = luaL_optstring(L, 2, s);
+    int status = luaL_loadbuffer(L, s, l, chunkname);
+    if (status == 0) {  /* OK? */
+        return 1;
+    } else {
+        lua_pushnil(L);
+        lua_insert(L, -2);  /* put before error message */
+        return 2;  /* return nil plus error message */
+    }
+}
+
 // M_MENU
 //////////////
 
@@ -4355,6 +4371,7 @@ static luaL_Reg lib[] = {
 	{"IsPlayerAdmin", lib_isPlayerAdmin},
 	{"reserveLuabanks", lib_reserveLuabanks},
 	{"tofixed", lib_tofixed},
+	{"loadstring", lib_loadstring},
 
 	// m_menu
 	{"M_MoveColorAfter",lib_pMoveColorAfter},
