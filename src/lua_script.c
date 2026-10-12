@@ -28,9 +28,11 @@
 #include "p_slopes.h" // for P_SlopeById and slopelist
 #include "p_polyobj.h" // polyobj_t, PolyObjects
 #include "lua_httplib.h" //adds the httplib
-#ifdef LUA_ALLOW_BYTECODE
-#include "netcode/d_netfil.h" // for LUA_DumpFile
-#endif
+#include "netcode/d_netfil.h"
+#include "netcode/net_command.h"
+#include "i_system.h"
+#include "i_time.h"
+#include "m_misc.h"
 
 #include "lua_script.h"
 #include "lua_libs.h"
@@ -41,10 +43,514 @@
 
 #include "hu_stuff.h"
 
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
+
 lua_State *gL = NULL;
+
+#define LUA_FILEHANDLE "FILE*"
+#define MAXOPENSPERMINUTE 50
+#define MAXBYTESPERMINUTE (10 * 1024 * 1024)
+#define FMT_FILECALLBACKID "file_callback_%d"
+
+static const char *const lua_file_whitelist[] = {
+	".bmp", ".cfg", ".csv", ".dat", ".png", ".sav2", ".txt"
+};
+
+static INT64 lua_numopenedfiles;
+static INT64 lua_numwrittenbytes;
+
+static FILE **LUA_NewFile(lua_State *L)
+{
+	FILE **file = (FILE **)lua_newuserdata(L, sizeof(*file));
+	*file = NULL;
+	lua_getfield(L, LUA_REGISTRYINDEX, LUA_FILEHANDLE);
+	lua_setmetatable(L, -2);
+	return file;
+}
+
+static FILE *LUA_CheckFile(lua_State *L, int index)
+{
+	FILE **file = (FILE **)luaL_checkudata(L, index, LUA_FILEHANDLE);
+	if (!*file)
+		luaL_errorL(L, "attempt to use a closed file");
+	return *file;
+}
+
+static int LUA_FileClose(lua_State *L)
+{
+	FILE **file = (FILE **)luaL_checkudata(L, 1, LUA_FILEHANDLE);
+	if (*file)
+	{
+		int result = fclose(*file);
+		*file = NULL;
+		if (result != 0)
+		{
+			lua_pushnil(L);
+			lua_pushstring(L, strerror(errno));
+			return 2;
+		}
+	}
+	lua_pushboolean(L, true);
+	return 1;
+}
+
+static int LUA_FileGC(lua_State *L)
+{
+	FILE **file = (FILE **)luaL_checkudata(L, 1, LUA_FILEHANDLE);
+	if (*file)
+	{
+		fclose(*file);
+		*file = NULL;
+	}
+	return 0;
+}
+
+static int LUA_FileToString(lua_State *L)
+{
+	FILE **file = (FILE **)luaL_checkudata(L, 1, LUA_FILEHANDLE);
+	lua_pushfstring(L, "%s (%p)", *file ? "file" : "closed file", *file);
+	return 1;
+}
+
+static int LUA_FileRead(lua_State *L)
+{
+	FILE *file = LUA_CheckFile(L, 1);
+	int arg = 2, results = 0;
+	int top = lua_gettop(L);
+	if (top == 1)
+		top = 2;
+
+	for (; arg <= top; arg++)
+	{
+		const char *format = luaL_optstring(L, arg, "*l");
+		if (format[0] == '*' && format[1] == 'a' && format[2] == '\0')
+		{
+			char buffer[4096];
+			size_t count;
+			luaL_Buffer output;
+			luaL_buffinit(L, &output);
+			while ((count = fread(buffer, 1, sizeof(buffer), file)) != 0)
+				luaL_addlstring(&output, buffer, count);
+			luaL_pushresult(&output);
+			results++;
+		}
+		else if (format[0] == '*' && format[1] == 'n' && format[2] == '\0')
+		{
+			double value;
+			if (fscanf(file, "%lf", &value) == 1)
+				lua_pushnumber(L, value);
+			else
+				lua_pushnil(L);
+			results++;
+		}
+		else if (format[0] == '*' && (format[1] == 'l' || format[1] == 'L')
+			&& format[2] == '\0')
+		{
+			luaL_Buffer output;
+			int c;
+			size_t length = 0;
+			luaL_buffinit(L, &output);
+			while ((c = fgetc(file)) != EOF && c != '\n')
+			{
+				if (c != '\r')
+				{
+					luaL_addchar(&output, c);
+					length++;
+				}
+			}
+			if (c == EOF && length == 0)
+				lua_pushnil(L);
+			else
+			{
+				if (format[1] == 'L' && c == '\n')
+					luaL_addchar(&output, '\n');
+				luaL_pushresult(&output);
+			}
+			results++;
+		}
+		else
+		{
+			lua_Integer length = luaL_checkinteger(L, arg);
+			if (length < 0)
+				return luaL_argerror(L, arg, "invalid byte count");
+			if ((uint64_t)length > SIZE_MAX)
+				return luaL_argerror(L, arg, "byte count is too large");
+			if (length == 0)
+				lua_pushliteral(L, "");
+			else
+			{
+				char *buffer = (char *)malloc((size_t)length);
+				size_t count;
+				if (!buffer)
+					return luaL_error(L, "not enough memory");
+				count = fread(buffer, 1, (size_t)length, file);
+				if (count == 0)
+					lua_pushnil(L);
+				else
+					lua_pushlstring(L, buffer, count);
+				free(buffer);
+			}
+			results++;
+		}
+		if (ferror(file))
+			return luaL_error(L, "file read error: %s", strerror(errno));
+	}
+	return results;
+}
+
+static int LUA_FileWrite(lua_State *L)
+{
+	FILE *file = LUA_CheckFile(L, 1);
+	boolean success = true;
+	int i;
+	for (i = 2; i <= lua_gettop(L); i++)
+	{
+		size_t length = 0;
+		const char *value = NULL;
+		boolean written;
+		if (lua_type(L, i) == LUA_TNUMBER)
+		{
+			written = fprintf(file, "%.14g", lua_tonumber(L, i)) >= 0;
+			if (!written)
+			{
+				success = false;
+				break;
+			}
+			continue;
+		}
+		value = luaL_checklstring(L, i, &length);
+		if (client)
+		{
+			INT64 minute = (INT64)(I_GetTime() / (60 * TICRATE)) + 1;
+			if (length > (size_t)INT64_MAX || lua_numwrittenbytes + (INT64)length > minute * MAXBYTESPERMINUTE)
+				return luaL_error(L, "file write rate limit exceeded; changes have been discarded");
+			lua_numwrittenbytes += (INT64)length;
+		}
+		success = fwrite(value, 1, length, file) == length;
+		if (!success)
+			break;
+	}
+	if (!success)
+	{
+		lua_pushnil(L);
+		lua_pushstring(L, strerror(errno));
+		return 2;
+	}
+	lua_pushvalue(L, 1);
+	return 1;
+}
+
+static int LUA_FileSetVBuf(lua_State *L)
+{
+	static const int modes[] = {_IONBF, _IOFBF, _IOLBF};
+	static const char *const names[] = {"no", "full", "line", NULL};
+	FILE *file = LUA_CheckFile(L, 1);
+	int mode = luaL_checkoption(L, 2, NULL, names);
+	lua_Integer size = luaL_optinteger(L, 3, BUFSIZ);
+	if (size < 0)
+		return luaL_argerror(L, 3, "buffer size must be non-negative");
+	if (setvbuf(file, NULL, modes[mode], (size_t)size) != 0)
+	{
+		lua_pushnil(L);
+		lua_pushstring(L, strerror(errno));
+		return 2;
+	}
+	lua_pushboolean(L, true);
+	return 1;
+}
+
+static int LUA_FileSeek(lua_State *L)
+{
+	static const char *const modes[] = {"set", "cur", "end", NULL};
+	static const int origins[] = {SEEK_SET, SEEK_CUR, SEEK_END};
+	FILE *file = LUA_CheckFile(L, 1);
+	int mode = luaL_checkoption(L, 2, "cur", modes);
+	long offset = (long)luaL_optinteger(L, 3, 0);
+	if (fseek(file, offset, origins[mode]) != 0)
+	{
+		lua_pushnil(L);
+		lua_pushstring(L, strerror(errno));
+		return 2;
+	}
+	lua_pushinteger(L, (lua_Integer)ftell(file));
+	return 1;
+}
+
+static int LUA_FileFlush(lua_State *L)
+{
+	if (fflush(LUA_CheckFile(L, 1)) != 0)
+	{
+		lua_pushnil(L);
+		lua_pushstring(L, strerror(errno));
+		return 2;
+	}
+	lua_pushboolean(L, true);
+	return 1;
+}
+
+static int LUA_FileLinesNext(lua_State *L)
+{
+	FILE *file = *(FILE **)luaL_checkudata(L, lua_upvalueindex(1), LUA_FILEHANDLE);
+	luaL_Buffer line;
+	int c;
+	size_t length = 0;
+	if (!file)
+		return luaL_error(L, "attempt to use a closed file");
+	luaL_buffinit(L, &line);
+	while ((c = fgetc(file)) != EOF && c != '\n')
+	{
+		if (c != '\r')
+		{
+			luaL_addchar(&line, c);
+			length++;
+		}
+	}
+	if (ferror(file))
+		return luaL_error(L, "file read error: %s", strerror(errno));
+	if (c == EOF && length == 0)
+		return 0;
+	luaL_pushresult(&line);
+	return 1;
+}
+
+static int LUA_FileLines(lua_State *L)
+{
+	LUA_CheckFile(L, 1);
+	lua_pushvalue(L, 1);
+	lua_pushcclosure(L, LUA_FileLinesNext, 1);
+	return 1;
+}
+
+static int LUA_IOType(lua_State *L)
+{
+	FILE **file = (FILE **)luaL_checkudata(L, 1, LUA_FILEHANDLE);
+	lua_pushstring(L, *file ? "file" : "closed file");
+	return 1;
+}
+
+static int LUA_IOClose(lua_State *L)
+{
+	if (lua_isnoneornil(L, 1))
+		return luaL_error(L, "default output file is not available");
+	return LUA_FileClose(L);
+}
+
+void MakePathDirs(char *path)
+{
+	char *cursor;
+	for (cursor = path; *cursor; cursor++)
+		if (*cursor == '/' || *cursor == '\\')
+		{
+			char separator = *cursor;
+			*cursor = '\0';
+			I_mkdir(path, 0755);
+			*cursor = separator;
+		}
+}
+
+static int LUA_CheckFileName(lua_State *L, const char *filename)
+{
+	size_t length = strlen(filename), i;
+	boolean allowed = false;
+	if (strchr(filename, '\\') || strstr(filename, "./")
+		|| strstr(filename, "..") || strchr(filename, ':')
+		|| filename[0] == '/')
+		return luaL_error(L, "access denied to %s", filename);
+	for (i = 0; i < sizeof(lua_file_whitelist) / sizeof(lua_file_whitelist[0]); i++)
+	{
+		size_t extlen = strlen(lua_file_whitelist[i]);
+		if (length >= extlen && !stricmp(filename + length - extlen, lua_file_whitelist[i]))
+		{
+			allowed = true;
+			break;
+		}
+	}
+	if (!allowed)
+		return luaL_error(L, "access denied to %s", filename);
+	return 0;
+}
+
+static int LUA_IOOpen(lua_State *L)
+{
+	const char *filename = luaL_checkstring(L, 1);
+	const char *mode = luaL_optstring(L, 2, "r");
+	LUA_CheckFileName(L, filename);
+	luaL_checktype(L, 3, LUA_TFUNCTION);
+	if (!strchr(mode, 'r') && !strchr(mode, '+'))
+		return luaL_error(L, "open() is only for reading, use openlocal() for writing");
+	AddLuaFileTransfer(filename, mode);
+	return 0;
+}
+
+static int LUA_IOOpenLocal(lua_State *L)
+{
+	const char *filename = luaL_checkstring(L, 1);
+	const char *mode = luaL_optstring(L, 2, "r");
+	char *realfilename;
+	luafiletransfer_t *transfer;
+	FILE **file;
+	LUA_CheckFileName(L, filename);
+	if (client && (strnicmp(filename, "client/", 7) != 0))
+		return luaL_error(L, "clients can only access files stored in luafiles/client/");
+	for (transfer = luafiletransfers; transfer; transfer = transfer->next)
+		if (!stricmp(transfer->filename, filename))
+			return luaL_error(L, "files can't be opened while being downloaded");
+	if (client && (strchr(mode, 'w') || strchr(mode, 'a') || strchr(mode, '+')))
+	{
+		INT64 minute = (INT64)(I_GetTime() / (60 * TICRATE)) + 1;
+		if (lua_numopenedfiles >= minute * MAXOPENSPERMINUTE)
+			return luaL_error(L, "file opening rate exceeded");
+		lua_numopenedfiles++;
+	}
+	realfilename = (char *)malloc(strlen(luafiledir) + strlen(filename) + 2);
+	if (!realfilename)
+		return luaL_error(L, "out of memory");
+	sprintf(realfilename, "%s" PATHSEP "%s", luafiledir, filename);
+	MakePathDirs(realfilename);
+	file = LUA_NewFile(L);
+	*file = fopen(realfilename, mode);
+	free(realfilename);
+	if (!*file)
+	{
+		lua_pop(L, 1);
+		lua_pushnil(L);
+		lua_pushstring(L, strerror(errno));
+		return 2;
+	}
+	return 1;
+}
+
+static int LUA_IOTmpFile(lua_State *L)
+{
+	FILE **file = LUA_NewFile(L);
+	*file = tmpfile();
+	if (!*file)
+	{
+		lua_pop(L, 1);
+		lua_pushnil(L);
+		lua_pushstring(L, strerror(errno));
+		return 2;
+	}
+	return 1;
+}
+
+static const luaL_Reg lua_file_methods[] = {
+	{"close", LUA_FileClose},
+	{"flush", LUA_FileFlush},
+	{"lines", LUA_FileLines},
+	{"read", LUA_FileRead},
+	{"seek", LUA_FileSeek},
+	{"setvbuf", LUA_FileSetVBuf},
+	{"write", LUA_FileWrite},
+	{"__gc", LUA_FileGC},
+	{"__tostring", LUA_FileToString},
+	{NULL, NULL}
+};
+
+static void LUA_RegisterFunctions(lua_State *L, const luaL_Reg *functions)
+{
+	for (; functions->name; functions++)
+	{
+		lua_pushcfunction(L, functions->func);
+		lua_setfield(L, -2, functions->name);
+	}
+}
+
+static int LUA_IOLib(lua_State *L)
+{
+	static const luaL_Reg io_functions[] = {
+		{"close", LUA_IOClose},
+		{"open", LUA_IOOpen},
+		{"openlocal", LUA_IOOpenLocal},
+		{"tmpfile", LUA_IOTmpFile},
+		{"type", LUA_IOType},
+		{NULL, NULL}
+	};
+	if (luaL_newmetatable(L, LUA_FILEHANDLE))
+	{
+		lua_pushvalue(L, -1);
+		lua_setfield(L, -2, "__index");
+		LUA_RegisterFunctions(L, lua_file_methods);
+	}
+	lua_pop(L, 1);
+	lua_newtable(L);
+	LUA_RegisterFunctions(L, io_functions);
+	lua_setglobal(L, "io");
+	return 0;
+}
+
+void StoreLuaFileCallback(INT32 id)
+{
+	lua_pushfstring(gL, FMT_FILECALLBACKID, id);
+	lua_pushvalue(gL, 3);
+	lua_settable(gL, LUA_REGISTRYINDEX);
+}
+
+void RemoveLuaFileCallback(INT32 id)
+{
+	lua_pushfstring(gL, FMT_FILECALLBACKID, id);
+	lua_pushnil(gL);
+	lua_settable(gL, LUA_REGISTRYINDEX);
+}
+
+void Got_LuaFile(UINT8 **cp, INT32 playernum)
+{
+	FILE **file = NULL;
+	UINT8 success = READUINT8(*cp);
+	if (playernum != serverplayer)
+	{
+		CONS_Alert(CONS_WARNING, M_GetText("Illegal luafile command received from %s\n"), player_names[playernum]);
+		if (server)
+			SendKick(playernum, KICK_MSG_CON_FAIL);
+		return;
+	}
+	if (!luafiletransfers)
+		I_Error("No Lua file transfer\n");
+
+	lua_settop(gL, 0);
+	lua_pushcfunction(gL, LUA_GetErrorMessage);
+	lua_pushfstring(gL, FMT_FILECALLBACKID, luafiletransfers->id);
+	lua_gettable(gL, LUA_REGISTRYINDEX);
+	if (success)
+	{
+		char mode[sizeof(luafiletransfers->mode) + 1];
+		strlcpy(mode, luafiletransfers->mode, sizeof(mode));
+		if (!strchr(mode, 'b'))
+			strlcat(mode, "b", sizeof(mode));
+		file = LUA_NewFile(gL);
+		*file = fopen(luafiletransfers->realfilename, mode);
+		if (!*file)
+			I_Error("Can't open file \"%s\"\n", luafiletransfers->realfilename);
+	}
+	else
+		lua_pushnil(gL);
+	lua_pushstring(gL, luafiletransfers->filename);
+	LUA_Call(gL, 2, 0, 1);
+	lua_settop(gL, 0);
+	if (success && file && *file)
+	{
+		fclose(*file);
+		*file = NULL;
+		if (client)
+			remove(luafiletransfers->realfilename);
+	}
+	RemoveLuaFileTransfer();
+	if (waitingforluafilecommand)
+	{
+		waitingforluafilecommand = false;
+		CL_PrepareDownloadLuaFile();
+	}
+	if (server && luafiletransfers)
+		SV_PrepareSendLuaFile();
+}
 
 // List of internal libraries to load from SRB2
 static lua_CFunction liblist[] = {
+	LUA_IOLib, // sandboxed local files and server-mediated file downloads
 	LUA_EnumLib, // global metatable for enums
 	LUA_SOCLib, // A_Action functions, freeslot
 	LUA_BaseLib, // string concatination by +, CONS_Printf, p_local.h stuff (P_InstaThrust, P_Move), etc.
@@ -82,69 +588,23 @@ static void *LUA_Alloc(void *ud, void *ptr, size_t osize, size_t nsize)
 
 // Panic function Lua calls when there's an unprotected error.
 // This function cannot return. Lua would kill the application anyway if it did.
-FUNCNORETURN static int LUA_Panic(lua_State *L)
+FUNCNORETURN static void LUA_Panic(lua_State *L, int errcode)
 {
 	const char *error = lua_tostring(L, -1);
 
+	(void)errcode;
 	CONS_Alert(CONS_ERROR, "LUA PANIC! %s\n", error);
 	I_Error("An unfortunate Lua processing error occurred in the exe itself."
 		"This is usually not a scripting error on your part.\n\n%s",
 		error);
-
-#ifndef __GNUC__
-	return -1;
-#endif
 }
 
-#define LEVELS1 12 // size of the first part of the stack
-#define LEVELS2 10 // size of the second part of the stack
-
 // Error handler used with pcall() when loading scripts or calling hooks
-// Takes a string with the original error message,
-// appends the traceback to it, and return the result
+// Takes a string with the original error message and appends the traceback.
 int LUA_GetErrorMessage(lua_State *L)
 {
-	int level = 1;
-	int firstpart = 1; // still before eventual `...'
-	lua_Debug ar;
-
-	lua_pushliteral(L, "\nstack traceback:");
-	while (lua_getstack(L, level++, &ar))
-	{
-		if (level > LEVELS1 && firstpart)
-		{
-			// no more than `LEVELS2' more levels?
-			if (!lua_getstack(L, level + LEVELS2, &ar))
-				level--; // keep going
-			else
-			{
-				lua_pushliteral(L, "\n    ..."); // too many levels
-				while (lua_getstack(L, level + LEVELS2, &ar)) // find last levels
-					level++;
-			}
-			firstpart = 0;
-			continue;
-		}
-		lua_pushliteral(L, "\n    ");
-		lua_getinfo(L, "Snl", &ar);
-		lua_pushfstring(L, "%s:", ar.short_src);
-		if (ar.currentline > 0)
-			lua_pushfstring(L, "%d:", ar.currentline);
-		if (*ar.namewhat != '\0') // is there a name?
-			lua_pushfstring(L, " in function " LUA_QS, ar.name);
-		else
-		{
-			if (*ar.what == 'm') // main?
-				lua_pushfstring(L, " in main chunk");
-			else if (*ar.what == 'C' || *ar.what == 't')
-				lua_pushliteral(L, " ?"); // C function or tail call
-			else
-				lua_pushfstring(L, " in function <%s:%d>",
-					ar.short_src, ar.linedefined);
-		}
-		lua_concat(L, lua_gettop(L));
-	}
-	lua_concat(L, lua_gettop(L));
+	const char *error = lua_tostring(L, -1);
+	luaL_traceback(L, L, error ? error : "(non-string error)", 1);
 	return 1;
 }
 
@@ -571,7 +1031,7 @@ static void LUA_ClearState(void)
 
 	// allocate state
 	L = lua_newstate(LUA_Alloc, NULL);
-	lua_atpanic(L, LUA_Panic);
+	lua_callbacks(L)->panic = LUA_Panic;
 
 	// open base libraries
 	luaL_openlibs(L);
@@ -727,24 +1187,19 @@ void LUA_DoLump(UINT16 wad, UINT16 lump, boolean noresults)
 }
 
 #ifdef LUA_ALLOW_BYTECODE
-// must match lua_Writer
-static int dumpWriter(lua_State *L, const void *p, size_t sz, void *ud)
-{
-	FILE *handle = (FILE*)ud;
-	I_Assert(handle != NULL);
-	(void)L;
-	if (!sz) return 0; // nothing to write? can't fail that! :D
-	return (fwrite(p, 1, sz, handle) != sz); // if fwrite != sz, we've failed.
-}
-
 // Compile a script by name and dump it back to disk.
 void LUA_DumpFile(const char *filename)
 {
 	FILE *handle;
+	char *source;
+	char *bytecode;
 	char filenamebuf[MAX_WADPATH];
+	long source_size;
+	size_t bytecode_size = 0;
+	int status;
 
-	if (!gL) // Lua needs to be initialized
-		LUA_ClearState(false);
+	if (!gL) // Luau needs to be initialized
+		LUA_ClearState();
 
 	// find the file the SRB2 way
 	strncpy(filenamebuf, filename, MAX_WADPATH);
@@ -752,12 +1207,7 @@ void LUA_DumpFile(const char *filename)
 	filename = filenamebuf;
 	if ((handle = fopen(filename, "rb")) == NULL)
 	{
-		// If we failed to load the file with the path as specified by
-		// the user, strip the directories and search for the file.
 		nameonly(filenamebuf);
-
-		// If findfile finds the file, the full path will be returned
-		// in filenamebuf == filename.
 		if (findfile(filenamebuf, NULL, true))
 		{
 			if ((handle = fopen(filename, "rb")) == NULL)
@@ -772,27 +1222,62 @@ void LUA_DumpFile(const char *filename)
 			return;
 		}
 	}
-	fclose(handle);
 
-	// pass the path we found to Lua
-	// luaL_loadfile will open and read the file in as a Lua function
-	if (luaL_loadfile(gL, filename)) {
-		CONS_Alert(CONS_ERROR,"%s\n",lua_tostring(gL,-1));
-		lua_pop(gL, 1);
+	if (fseek(handle, 0, SEEK_END) != 0 || (source_size = ftell(handle)) < 0
+		|| fseek(handle, 0, SEEK_SET) != 0)
+	{
+		CONS_Alert(CONS_ERROR, M_GetText("Can't read %s\n"), filename);
+		fclose(handle);
 		return;
 	}
 
-	// dump it back to disk
-	if ((handle = fopen(filename, "wb")) == NULL)
-		CONS_Alert(CONS_ERROR, M_GetText("Can't write to %s\n"), filename);
-	if (lua_dump(gL, dumpWriter, handle))
-		CONS_Printf("Failed while writing %s to disk... Sorry!\n", filename);
-	else
-		CONS_Printf("Successfully compiled %s into bytecode.\n", filename);
+	source = malloc((size_t)source_size ? (size_t)source_size : 1);
+	if (!source)
+	{
+		CONS_Alert(CONS_ERROR, M_GetText("Can't read %s\n"), filename);
+		fclose(handle);
+		return;
+	}
+	if (fread(source, 1, (size_t)source_size, handle) != (size_t)source_size)
+	{
+		CONS_Alert(CONS_ERROR, M_GetText("Can't read %s\n"), filename);
+		free(source);
+		fclose(handle);
+		return;
+	}
 	fclose(handle);
-	lua_pop(gL, 1); // function is still on stack after lua_dump
+
+	bytecode = LUA_CompileBuffer(source, (size_t)source_size, &bytecode_size);
+	free(source);
+	if (!bytecode)
+	{
+		CONS_Alert(CONS_ERROR, M_GetText("Unable to compile %s\n"), filename);
+		return;
+	}
+
+	status = luau_load(gL, filename, bytecode, bytecode_size, 0);
+	if (status)
+	{
+		CONS_Alert(CONS_ERROR, "%s\n", lua_tostring(gL, -1));
+		lua_pop(gL, 1);
+		free(bytecode);
+		return;
+	}
+	lua_pop(gL, 1);
+
+	if ((handle = fopen(filename, "wb")) == NULL)
+	{
+		CONS_Alert(CONS_ERROR, M_GetText("Can't write to %s\n"), filename);
+		free(bytecode);
+		return;
+	}
+	if (fwrite(bytecode, 1, bytecode_size, handle) != bytecode_size)
+		CONS_Alert(CONS_ERROR, M_GetText("Failed while writing %s\n"), filename);
+	else
+		CONS_Printf(M_GetText("Successfully compiled %s into bytecode.\n"), filename);
+	fclose(handle);
+	free(bytecode);
 	lua_gc(gL, LUA_GCCOLLECT, 0);
-	return;
 }
 #endif
 
@@ -808,7 +1293,7 @@ fixed_t LUA_EvalMath(const char *word)
 		// make a new state so SOC can't interefere with scripts
 		// allocate state
 		L = lua_newstate(LUA_Alloc, NULL);
-		lua_atpanic(L, LUA_Panic);
+		lua_callbacks(L)->panic = LUA_Panic;
 
 		// open only enum lib
 		lua_pushcfunction(L, LUA_EnumLib);

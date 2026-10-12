@@ -133,7 +133,9 @@ include Makefile.d/util.mk
 
 ifdef PREFIX
 CC:=$(PREFIX)-gcc
+CXX:=$(PREFIX)-g++
 endif
+CXX?=g++
 
 OBJDUMP_OPTS?=--wide --source --line-numbers
 
@@ -182,11 +184,22 @@ objdir:=$(makedir)/objs
 # very sophisticated dependency
 sources+=\
 	$(call List,Sourcefile)\
-	$(call List,blua/Sourcefile)\
+	$(call List,../thirdparty/luau/Sourcefile)\
 	$(call List,netcode/Sourcefile)\
 
-depends:=$(basename $(filter %.c %.s,$(sources)))
-objects:=$(basename $(filter %.c %.s %.nas,$(sources)))
+luau_includes=-I../thirdparty/luau/VM/include \
+	-I../thirdparty/luau/VM/src \
+	-I../thirdparty/luau/Common/include \
+	-I../thirdparty/luau/Ast/include \
+	-I../thirdparty/luau/Bytecode/include \
+	-I../thirdparty/luau/Compiler/include
+opts+=$(luau_includes)
+luau_cxx_opts=-std=c++17 -DLUA_USE_LONGJMP=1 \
+	-DLUA_API=SRB2_LUA_API -DLUACODE_API=SRB2_LUACODE_API \
+	-include ../thirdparty/luau/srb2_build_config.h
+
+depends:=$(basename $(filter %.c %.cpp %.s,$(sources)))
+objects:=$(basename $(filter %.c %.cpp %.s %.nas,$(sources)))
 
 depends:=$(depends:%=$(depdir)/%.d)
 
@@ -254,6 +267,7 @@ libs+=$(LDFLAGS)
 asflags:=$(ASFLAGS) -x assembler-with-cpp
 
 cc=$(CC)
+cxx=$(CXX)
 
 ifdef DISTCC
 cc=distcc $(CC)
@@ -290,8 +304,9 @@ endif
 endif
 endif
 
-LD:=$(CC)
+LD:=$(CXX)
 cc:=$(cc) $(opts)
+cxx:=$(cxx) $(opts) $(CXXFLAGS) $(luau_cxx_opts)
 ifdef UPX
 upx=$(UPX) $(UPX_OPTS)
 endif
@@ -355,6 +370,7 @@ endif
 endef
 
 $(eval $(call _recipe,c))
+$(eval $(call _recipe,cpp,$(luau_cxx_opts)))
 $(eval $(call _recipe,s,$(asflags)))
 
 # compiling recipe template
@@ -368,6 +384,7 @@ $(objdir)/%.$(1) : %.$(2) | $$$$(@D)/
 endef
 
 $(eval $(call _recipe,o,c,$(cc) -c -o $$@ $$<))
+$(eval $(call _recipe,o,cpp,$(cxx) -c -o $$@ $$<))
 $(eval $(call _recipe,o,s,$(cc) $(asflags) -c -o $$@ $$<))
 $(eval $(call _recipe,res,rc,$(windres) -i $$< -o $$@))
 

@@ -768,7 +768,8 @@ static void hook_think_frame(int type)
 			{
 				lua_Debug ar;
 				time_taken = I_GetPreciseTime() - time_taken;
-				lua_getinfo(gL, ">S", &ar);
+				lua_getinfo(gL, -1, "s", &ar);
+				lua_pop(gL, 1);
 				if (type == 4) // sorry for magic numbers
 					PS_SetPreThinkFrameHookInfo(hook_index, time_taken, ar.short_src);
 				else if (type == 5)

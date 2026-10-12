@@ -250,29 +250,10 @@
   <ItemGroup>
     <ClInclude Include="..\am_map.h" />
     <ClInclude Include="..\apng.h" />
-    <ClInclude Include="..\blua\lapi.h" />
-    <ClInclude Include="..\blua\lauxlib.h" />
-    <ClInclude Include="..\blua\lcode.h" />
-    <ClInclude Include="..\blua\ldebug.h" />
-    <ClInclude Include="..\blua\ldo.h" />
-    <ClInclude Include="..\blua\lfunc.h" />
-    <ClInclude Include="..\blua\lgc.h" />
-    <ClInclude Include="..\blua\llex.h" />
-    <ClInclude Include="..\blua\llimits.h" />
-    <ClInclude Include="..\blua\lmem.h" />
-    <ClInclude Include="..\blua\lobject.h" />
-    <ClInclude Include="..\blua\lopcodes.h" />
-    <ClInclude Include="..\blua\lparser.h" />
-    <ClInclude Include="..\blua\lstate.h" />
-    <ClInclude Include="..\blua\lstring.h" />
-    <ClInclude Include="..\blua\ltable.h" />
-    <ClInclude Include="..\blua\ltm.h" />
-    <ClInclude Include="..\blua\lua.h" />
-    <ClInclude Include="..\blua\luaconf.h" />
-    <ClInclude Include="..\blua\lualib.h" />
-    <ClInclude Include="..\blua\lundump.h" />
-    <ClInclude Include="..\blua\lvm.h" />
-    <ClInclude Include="..\blua\lzio.h" />
+    <ClInclude Include="..\..\thirdparty\luau\VM\include\lua.h" />
+    <ClInclude Include="..\..\thirdparty\luau\VM\include\lualib.h" />
+    <ClInclude Include="..\..\thirdparty\luau\Compiler\include\luacode.h" />
+    <ClInclude Include="..\..\thirdparty\luau\srb2_build_config.h" />
     <ClInclude Include="..\byteptr.h" />
     <ClInclude Include="..\b_bot.h" />
     <ClInclude Include="..\command.h" />
@@ -446,32 +427,254 @@
   <ItemGroup>
     <ClCompile Include="..\am_map.c" />
     <ClCompile Include="..\apng.c" />
-    <ClCompile Include="..\blua\lapi.c" />
-    <ClCompile Include="..\blua\lauxlib.c" />
-    <ClCompile Include="..\blua\lbaselib.c" />
-    <ClCompile Include="..\blua\lcode.c" />
-    <ClCompile Include="..\blua\ldebug.c" />
-    <ClCompile Include="..\blua\ldo.c" />
-    <ClCompile Include="..\blua\ldump.c" />
-    <ClCompile Include="..\blua\lfunc.c" />
-    <ClCompile Include="..\blua\lgc.c" />
-    <ClCompile Include="..\blua\linit.c" />
-    <ClCompile Include="..\blua\liolib.c" />
-    <ClCompile Include="..\blua\llex.c" />
-    <ClCompile Include="..\blua\lmem.c" />
-    <ClCompile Include="..\blua\lobject.c" />
-    <ClCompile Include="..\blua\lopcodes.c" />
-    <ClCompile Include="..\blua\loslib.c" />
-    <ClCompile Include="..\blua\lparser.c" />
-    <ClCompile Include="..\blua\lstate.c" />
-    <ClCompile Include="..\blua\lstring.c" />
-    <ClCompile Include="..\blua\lstrlib.c" />
-    <ClCompile Include="..\blua\ltable.c" />
-    <ClCompile Include="..\blua\ltablib.c" />
-    <ClCompile Include="..\blua\ltm.c" />
-    <ClCompile Include="..\blua\lundump.c" />
-    <ClCompile Include="..\blua\lvm.c" />
-    <ClCompile Include="..\blua\lzio.c" />
+    <ClCompile Include="..\lua_luau.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Common\src\BytecodeWire.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Common\src\StringUtils.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Common\src\TimeTrace.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Ast\src\Allocator.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Ast\src\Ast.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Ast\src\Confusables.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Ast\src\Cst.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Ast\src\Lexer.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Ast\src\Location.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Ast\src\Parser.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Ast\src\PrettyPrinter.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Bytecode\src\BytecodeBuilder.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Bytecode\src\BytecodeDump.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Bytecode\src\BytecodeGraph.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Bytecode\src\Sccp.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Compiler\src\Compiler.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Compiler\src\Builtins.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Compiler\src\BuiltinFolding.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Compiler\src\ConstantFolding.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Compiler\src\CostModel.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Compiler\src\TableShape.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Compiler\src\Types.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Compiler\src\ValueTracking.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Compiler\src\lcode.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lapi.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\laux.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lbaselib.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lbitlib.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lbuffer.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lbuflib.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lbuiltins.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lcorolib.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\ldblib.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\ldebug.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\ldo.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lfunc.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lgc.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lgcdebug.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\linit.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lmathlib.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lmem.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lnumprint.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lobject.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\loslib.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lperf.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lstate.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lstring.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lstrlib.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\ltable.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\ltablib.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\ltm.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\ludata.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lutf8lib.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lveclib.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lintlib.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lvmexecute.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lclass.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lclasslib.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lvector.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lvmload.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lvmutils.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
     <ClCompile Include="..\b_bot.c" />
     <ClCompile Include="..\command.c" />
     <ClCompile Include="..\comptime.c" />

@@ -7,9 +7,6 @@
     <Filter Include="B_Bots">
       <UniqueIdentifier>{623dc46a-ca67-4857-a2f0-d4357ff43cd7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="BLUA">
-      <UniqueIdentifier>{067072e3-d4f9-4198-8f0f-cfcbc2f6c02e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="D_Doom">
       <UniqueIdentifier>{b92269bc-8016-4be6-8af4-47ad1fee89f6}</UniqueIdentifier>
     </Filter>
@@ -30,6 +27,9 @@
     </Filter>
     <Filter Include="I_Interface">
       <UniqueIdentifier>{bdfebd6c-f16e-47f5-9d8c-24baf1bad420}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="LUAU">
+      <UniqueIdentifier>{4E39A5F1-2D1C-4A12-AE37-DBEF6F476A04}</UniqueIdentifier>
     </Filter>
     <Filter Include="LUA">
       <UniqueIdentifier>{803cf010-5486-46c8-ade2-b01a0869210a}</UniqueIdentifier>
@@ -57,80 +57,209 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\thirdparty\luau\VM\include\lua.h">
+      <Filter>LUAU</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thirdparty\luau\VM\include\lualib.h">
+      <Filter>LUAU</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thirdparty\luau\Compiler\include\luacode.h">
+      <Filter>LUAU</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thirdparty\luau\srb2_build_config.h">
+      <Filter>LUAU</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\lua_luau.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Common\src\BytecodeWire.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Common\src\StringUtils.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Common\src\TimeTrace.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Ast\src\Allocator.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Ast\src\Ast.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Ast\src\Confusables.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Ast\src\Cst.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Ast\src\Lexer.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Ast\src\Location.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Ast\src\Parser.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Ast\src\PrettyPrinter.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Bytecode\src\BytecodeBuilder.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Bytecode\src\BytecodeDump.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Bytecode\src\BytecodeGraph.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Bytecode\src\Sccp.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Compiler\src\Compiler.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Compiler\src\Builtins.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Compiler\src\BuiltinFolding.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Compiler\src\ConstantFolding.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Compiler\src\CostModel.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Compiler\src\TableShape.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Compiler\src\Types.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Compiler\src\ValueTracking.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\Compiler\src\lcode.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lapi.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\laux.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lbaselib.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lbitlib.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lbuffer.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lbuflib.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lbuiltins.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lcorolib.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\ldblib.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\ldebug.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\ldo.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lfunc.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lgc.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lgcdebug.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\linit.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lmathlib.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lmem.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lnumprint.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lobject.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\loslib.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lperf.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lstate.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lstring.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lstrlib.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\ltable.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\ltablib.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\ltm.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\ludata.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lutf8lib.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lveclib.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lintlib.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lvmexecute.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lclass.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lclasslib.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lvector.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lvmload.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\luau\VM\src\lvmutils.cpp">
+      <Filter>LUAU</Filter>
+    </ClCompile>
     <ClInclude Include="..\p5prof.h">
       <Filter>A_Asm</Filter>
     </ClInclude>
     <ClInclude Include="..\b_bot.h">
       <Filter>B_Bots</Filter>
-    </ClInclude>
-    <ClInclude Include="..\blua\lapi.h">
-      <Filter>BLUA</Filter>
-    </ClInclude>
-    <ClInclude Include="..\blua\lauxlib.h">
-      <Filter>BLUA</Filter>
-    </ClInclude>
-    <ClInclude Include="..\blua\lcode.h">
-      <Filter>BLUA</Filter>
-    </ClInclude>
-    <ClInclude Include="..\blua\ldebug.h">
-      <Filter>BLUA</Filter>
-    </ClInclude>
-    <ClInclude Include="..\blua\ldo.h">
-      <Filter>BLUA</Filter>
-    </ClInclude>
-    <ClInclude Include="..\blua\lfunc.h">
-      <Filter>BLUA</Filter>
-    </ClInclude>
-    <ClInclude Include="..\blua\lgc.h">
-      <Filter>BLUA</Filter>
-    </ClInclude>
-    <ClInclude Include="..\blua\llex.h">
-      <Filter>BLUA</Filter>
-    </ClInclude>
-    <ClInclude Include="..\blua\llimits.h">
-      <Filter>BLUA</Filter>
-    </ClInclude>
-    <ClInclude Include="..\blua\lmem.h">
-      <Filter>BLUA</Filter>
-    </ClInclude>
-    <ClInclude Include="..\blua\lobject.h">
-      <Filter>BLUA</Filter>
-    </ClInclude>
-    <ClInclude Include="..\blua\lopcodes.h">
-      <Filter>BLUA</Filter>
-    </ClInclude>
-    <ClInclude Include="..\blua\lparser.h">
-      <Filter>BLUA</Filter>
-    </ClInclude>
-    <ClInclude Include="..\blua\lstate.h">
-      <Filter>BLUA</Filter>
-    </ClInclude>
-    <ClInclude Include="..\blua\lstring.h">
-      <Filter>BLUA</Filter>
-    </ClInclude>
-    <ClInclude Include="..\blua\ltable.h">
-      <Filter>BLUA</Filter>
-    </ClInclude>
-    <ClInclude Include="..\blua\ltm.h">
-      <Filter>BLUA</Filter>
-    </ClInclude>
-    <ClInclude Include="..\blua\lua.h">
-      <Filter>BLUA</Filter>
-    </ClInclude>
-    <ClInclude Include="..\blua\luaconf.h">
-      <Filter>BLUA</Filter>
-    </ClInclude>
-    <ClInclude Include="..\blua\lualib.h">
-      <Filter>BLUA</Filter>
-    </ClInclude>
-    <ClInclude Include="..\blua\lundump.h">
-      <Filter>BLUA</Filter>
-    </ClInclude>
-    <ClInclude Include="..\blua\lvm.h">
-      <Filter>BLUA</Filter>
-    </ClInclude>
-    <ClInclude Include="..\blua\lzio.h">
-      <Filter>BLUA</Filter>
     </ClInclude>
     <ClInclude Include="..\dehacked.h">
       <Filter>D_Doom</Filter>
@@ -595,81 +724,6 @@
     <ClCompile Include="..\b_bot.c">
       <Filter>B_Bots</Filter>
     </ClCompile>
-    <ClCompile Include="..\blua\lapi.c">
-      <Filter>BLUA</Filter>
-    </ClCompile>
-    <ClCompile Include="..\blua\lauxlib.c">
-      <Filter>BLUA</Filter>
-    </ClCompile>
-    <ClCompile Include="..\blua\lbaselib.c">
-      <Filter>BLUA</Filter>
-    </ClCompile>
-    <ClCompile Include="..\blua\lcode.c">
-      <Filter>BLUA</Filter>
-    </ClCompile>
-    <ClCompile Include="..\blua\ldebug.c">
-      <Filter>BLUA</Filter>
-    </ClCompile>
-    <ClCompile Include="..\blua\ldo.c">
-      <Filter>BLUA</Filter>
-    </ClCompile>
-    <ClCompile Include="..\blua\ldump.c">
-      <Filter>BLUA</Filter>
-    </ClCompile>
-    <ClCompile Include="..\blua\lfunc.c">
-      <Filter>BLUA</Filter>
-    </ClCompile>
-    <ClCompile Include="..\blua\lgc.c">
-      <Filter>BLUA</Filter>
-    </ClCompile>
-    <ClCompile Include="..\blua\linit.c">
-      <Filter>BLUA</Filter>
-    </ClCompile>
-    <ClCompile Include="..\blua\liolib.c">
-      <Filter>BLUA</Filter>
-    </ClCompile>
-    <ClCompile Include="..\blua\llex.c">
-      <Filter>BLUA</Filter>
-    </ClCompile>
-    <ClCompile Include="..\blua\lmem.c">
-      <Filter>BLUA</Filter>
-    </ClCompile>
-    <ClCompile Include="..\blua\lobject.c">
-      <Filter>BLUA</Filter>
-    </ClCompile>
-    <ClCompile Include="..\blua\lopcodes.c">
-      <Filter>BLUA</Filter>
-    </ClCompile>
-    <ClCompile Include="..\blua\lparser.c">
-      <Filter>BLUA</Filter>
-    </ClCompile>
-    <ClCompile Include="..\blua\lstate.c">
-      <Filter>BLUA</Filter>
-    </ClCompile>
-    <ClCompile Include="..\blua\lstring.c">
-      <Filter>BLUA</Filter>
-    </ClCompile>
-    <ClCompile Include="..\blua\lstrlib.c">
-      <Filter>BLUA</Filter>
-    </ClCompile>
-    <ClCompile Include="..\blua\ltable.c">
-      <Filter>BLUA</Filter>
-    </ClCompile>
-    <ClCompile Include="..\blua\ltablib.c">
-      <Filter>BLUA</Filter>
-    </ClCompile>
-    <ClCompile Include="..\blua\ltm.c">
-      <Filter>BLUA</Filter>
-    </ClCompile>
-    <ClCompile Include="..\blua\lundump.c">
-      <Filter>BLUA</Filter>
-    </ClCompile>
-    <ClCompile Include="..\blua\lvm.c">
-      <Filter>BLUA</Filter>
-    </ClCompile>
-    <ClCompile Include="..\blua\lzio.c">
-      <Filter>BLUA</Filter>
-    </ClCompile>
     <ClCompile Include="..\dehacked.c">
       <Filter>D_Doom</Filter>
     </ClCompile>
@@ -1113,9 +1167,6 @@
       <Filter>M_Misc</Filter>
     </ClCompile>
     <ClCompile Include="..\u_list.c" />
-    <ClCompile Include="..\blua\loslib.c">
-      <Filter>BLUA</Filter>
-    </ClCompile>
     <ClCompile Include="..\lua_colorlib.c">
       <Filter>LUA</Filter>
     </ClCompile>

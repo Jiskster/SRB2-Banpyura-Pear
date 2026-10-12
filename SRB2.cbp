@@ -30,6 +30,17 @@ HW3SOUND for 3D hardware sound  support
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
+					<Add option="-Ithirdparty/luau/VM/include" />
+					<Add option="-Ithirdparty/luau/VM/src" />
+					<Add option="-Ithirdparty/luau/Common/include" />
+					<Add option="-Ithirdparty/luau/Ast/include" />
+					<Add option="-Ithirdparty/luau/Bytecode/include" />
+					<Add option="-Ithirdparty/luau/Compiler/include" />
+					<Add option="-DLUA_USE_LONGJMP=1" />
+					<Add option="-DLUA_API=SRB2_LUA_API" />
+					<Add option="-DLUACODE_API=SRB2_LUACODE_API" />
+					<Add option="-include thirdparty/luau/srb2_build_config.h" />
+
 					<Add option="-g" />
 					<Add option="`sdl2-config --cflags`" />
 					<Add option="-DDIRECTFULLSCREEN" />
@@ -38,7 +49,6 @@ HW3SOUND for 3D hardware sound  support
 					<Add option="-DRANGECHECK" />
 					<Add option="-D_DEBUG" />
 					<Add option="-DCOMPVERSION" />
-					<Add option="-DHAVE_BLUA" />
 				</Compiler>
 				<Linker>
 					<Add option="`sdl2-config --libs`" />
@@ -52,6 +62,17 @@ HW3SOUND for 3D hardware sound  support
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
+					<Add option="-Ithirdparty/luau/VM/include" />
+					<Add option="-Ithirdparty/luau/VM/src" />
+					<Add option="-Ithirdparty/luau/Common/include" />
+					<Add option="-Ithirdparty/luau/Ast/include" />
+					<Add option="-Ithirdparty/luau/Bytecode/include" />
+					<Add option="-Ithirdparty/luau/Compiler/include" />
+					<Add option="-DLUA_USE_LONGJMP=1" />
+					<Add option="-DLUA_API=SRB2_LUA_API" />
+					<Add option="-DLUACODE_API=SRB2_LUACODE_API" />
+					<Add option="-include thirdparty/luau/srb2_build_config.h" />
+
 					<Add option="-O2" />
 					<Add option="-g" />
 					<Add option="`sdl2-config --cflags`" />
@@ -59,7 +80,6 @@ HW3SOUND for 3D hardware sound  support
 					<Add option="-DHAVE_SDL" />
 					<Add option="-DNDEBUG" />
 					<Add option="-DCOMPVERSION" />
-					<Add option="-DHAVE_BLUA" />
 				</Compiler>
 				<Linker>
 					<Add option="`sdl2-config --libs`" />
@@ -73,6 +93,17 @@ HW3SOUND for 3D hardware sound  support
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
+					<Add option="-Ithirdparty/luau/VM/include" />
+					<Add option="-Ithirdparty/luau/VM/src" />
+					<Add option="-Ithirdparty/luau/Common/include" />
+					<Add option="-Ithirdparty/luau/Ast/include" />
+					<Add option="-Ithirdparty/luau/Bytecode/include" />
+					<Add option="-Ithirdparty/luau/Compiler/include" />
+					<Add option="-DLUA_USE_LONGJMP=1" />
+					<Add option="-DLUA_API=SRB2_LUA_API" />
+					<Add option="-DLUACODE_API=SRB2_LUACODE_API" />
+					<Add option="-include thirdparty/luau/srb2_build_config.h" />
+
 					<Add option="-g" />
 					<Add option="`sdl2-config --cflags`" />
 					<Add option="`libpng-config --cflags`" />
@@ -86,7 +117,6 @@ HW3SOUND for 3D hardware sound  support
 					<Add option="-DRANGECHECK" />
 					<Add option="-D_DEBUG" />
 					<Add option="-DCOMPVERSION" />
-					<Add option="-DHAVE_BLUA" />
 				</Compiler>
 				<Linker>
 					<Add option="`sdl2-config --libs`" />
@@ -102,6 +132,17 @@ HW3SOUND for 3D hardware sound  support
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
+					<Add option="-Ithirdparty/luau/VM/include" />
+					<Add option="-Ithirdparty/luau/VM/src" />
+					<Add option="-Ithirdparty/luau/Common/include" />
+					<Add option="-Ithirdparty/luau/Ast/include" />
+					<Add option="-Ithirdparty/luau/Bytecode/include" />
+					<Add option="-Ithirdparty/luau/Compiler/include" />
+					<Add option="-DLUA_USE_LONGJMP=1" />
+					<Add option="-DLUA_API=SRB2_LUA_API" />
+					<Add option="-DLUACODE_API=SRB2_LUACODE_API" />
+					<Add option="-include thirdparty/luau/srb2_build_config.h" />
+
 					<Add option="-O2" />
 					<Add option="-g" />
 					<Add option="`sdl2-config --cflags`" />
@@ -114,7 +155,6 @@ HW3SOUND for 3D hardware sound  support
 					<Add option="-DHAVE_PNG" />
 					<Add option="-DNDEBUG" />
 					<Add option="-DCOMPVERSION" />
-					<Add option="-DHAVE_BLUA" />
 				</Compiler>
 				<Linker>
 					<Add option="`sdl2-config --libs`" />
@@ -130,6 +170,17 @@ HW3SOUND for 3D hardware sound  support
 				<Option type="1" />
 				<Option compiler="gnu_gcc_compiler_for_mingw32" />
 				<Compiler>
+					<Add option="-Ithirdparty/luau/VM/include" />
+					<Add option="-Ithirdparty/luau/VM/src" />
+					<Add option="-Ithirdparty/luau/Common/include" />
+					<Add option="-Ithirdparty/luau/Ast/include" />
+					<Add option="-Ithirdparty/luau/Bytecode/include" />
+					<Add option="-Ithirdparty/luau/Compiler/include" />
+					<Add option="-DLUA_USE_LONGJMP=1" />
+					<Add option="-DLUA_API=SRB2_LUA_API" />
+					<Add option="-DLUACODE_API=SRB2_LUACODE_API" />
+					<Add option="-include thirdparty/luau/srb2_build_config.h" />
+
 					<Add option="-march=i586" />
 					<Add option="-g" />
 					<Add option="-gdwarf-2" />
@@ -147,7 +198,6 @@ HW3SOUND for 3D hardware sound  support
 					<Add option="-DRANGECHECK" />
 					<Add option="-D_DEBUG" />
 					<Add option="-DCOMPVERSION" />
-					<Add option="-DHAVE_BLUA" />
 					<Add option="-DHAVE_LIBGME" />
 					<Add directory="libs/libpng-src" />
 					<Add directory="libs/zlib" />
@@ -180,6 +230,17 @@ HW3SOUND for 3D hardware sound  support
 				<Option type="0" />
 				<Option compiler="gnu_gcc_compiler_for_mingw32" />
 				<Compiler>
+					<Add option="-Ithirdparty/luau/VM/include" />
+					<Add option="-Ithirdparty/luau/VM/src" />
+					<Add option="-Ithirdparty/luau/Common/include" />
+					<Add option="-Ithirdparty/luau/Ast/include" />
+					<Add option="-Ithirdparty/luau/Bytecode/include" />
+					<Add option="-Ithirdparty/luau/Compiler/include" />
+					<Add option="-DLUA_USE_LONGJMP=1" />
+					<Add option="-DLUA_API=SRB2_LUA_API" />
+					<Add option="-DLUACODE_API=SRB2_LUACODE_API" />
+					<Add option="-include thirdparty/luau/srb2_build_config.h" />
+
 					<Add option="-march=i586" />
 					<Add option="-O2" />
 					<Add option="-g" />
@@ -197,7 +258,6 @@ HW3SOUND for 3D hardware sound  support
 					<Add option="-DHAVE_PNG" />
 					<Add option="-DNDEBUG" />
 					<Add option="-DCOMPVERSION" />
-					<Add option="-DHAVE_BLUA" />
 					<Add option="-DHAVE_LIBGME" />
 					<Add directory="libs/libpng-src" />
 					<Add directory="libs/zlib" />
@@ -230,6 +290,17 @@ HW3SOUND for 3D hardware sound  support
 				<Option type="0" />
 				<Option compiler="gnu_gcc_compiler_for_mingw32" />
 				<Compiler>
+					<Add option="-Ithirdparty/luau/VM/include" />
+					<Add option="-Ithirdparty/luau/VM/src" />
+					<Add option="-Ithirdparty/luau/Common/include" />
+					<Add option="-Ithirdparty/luau/Ast/include" />
+					<Add option="-Ithirdparty/luau/Bytecode/include" />
+					<Add option="-Ithirdparty/luau/Compiler/include" />
+					<Add option="-DLUA_USE_LONGJMP=1" />
+					<Add option="-DLUA_API=SRB2_LUA_API" />
+					<Add option="-DLUACODE_API=SRB2_LUACODE_API" />
+					<Add option="-include thirdparty/luau/srb2_build_config.h" />
+
 					<Add option="-march=i586" />
 					<Add option="-O2" />
 					<Add option="-g" />
@@ -242,7 +313,6 @@ HW3SOUND for 3D hardware sound  support
 					<Add option="-DRANGECHECK" />
 					<Add option="-D_DEBUG" />
 					<Add option="-DCOMPVERSION" />
-					<Add option="-DHAVE_BLUA" />
 					<Add option="-DHAVE_LIBGME" />
 					<Add directory="libs/libpng-src" />
 					<Add directory="libs/zlib" />
@@ -279,6 +349,17 @@ HW3SOUND for 3D hardware sound  support
 				<Option type="0" />
 				<Option compiler="gnu_gcc_compiler_for_mingw32" />
 				<Compiler>
+					<Add option="-Ithirdparty/luau/VM/include" />
+					<Add option="-Ithirdparty/luau/VM/src" />
+					<Add option="-Ithirdparty/luau/Common/include" />
+					<Add option="-Ithirdparty/luau/Ast/include" />
+					<Add option="-Ithirdparty/luau/Bytecode/include" />
+					<Add option="-Ithirdparty/luau/Compiler/include" />
+					<Add option="-DLUA_USE_LONGJMP=1" />
+					<Add option="-DLUA_API=SRB2_LUA_API" />
+					<Add option="-DLUACODE_API=SRB2_LUACODE_API" />
+					<Add option="-include thirdparty/luau/srb2_build_config.h" />
+
 					<Add option="-march=i586" />
 					<Add option="-O2" />
 					<Add option="-g" />
@@ -290,7 +371,6 @@ HW3SOUND for 3D hardware sound  support
 					<Add option="-DHAVE_PNG" />
 					<Add option="-DNDEBUG" />
 					<Add option="-DCOMPVERSION" />
-					<Add option="-DHAVE_BLUA" />
 					<Add option="-DHAVE_LIBGME" />
 					<Add directory="libs/libpng-src" />
 					<Add directory="libs/zlib" />
@@ -327,6 +407,17 @@ HW3SOUND for 3D hardware sound  support
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
+					<Add option="-Ithirdparty/luau/VM/include" />
+					<Add option="-Ithirdparty/luau/VM/src" />
+					<Add option="-Ithirdparty/luau/Common/include" />
+					<Add option="-Ithirdparty/luau/Ast/include" />
+					<Add option="-Ithirdparty/luau/Bytecode/include" />
+					<Add option="-Ithirdparty/luau/Compiler/include" />
+					<Add option="-DLUA_USE_LONGJMP=1" />
+					<Add option="-DLUA_API=SRB2_LUA_API" />
+					<Add option="-DLUACODE_API=SRB2_LUACODE_API" />
+					<Add option="-include thirdparty/luau/srb2_build_config.h" />
+
 					<Add option="-g" />
 					<Add option="-DPARANOIA" />
 					<Add option="-DRANGECHECK" />
@@ -344,6 +435,17 @@ HW3SOUND for 3D hardware sound  support
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
+					<Add option="-Ithirdparty/luau/VM/include" />
+					<Add option="-Ithirdparty/luau/VM/src" />
+					<Add option="-Ithirdparty/luau/Common/include" />
+					<Add option="-Ithirdparty/luau/Ast/include" />
+					<Add option="-Ithirdparty/luau/Bytecode/include" />
+					<Add option="-Ithirdparty/luau/Compiler/include" />
+					<Add option="-DLUA_USE_LONGJMP=1" />
+					<Add option="-DLUA_API=SRB2_LUA_API" />
+					<Add option="-DLUACODE_API=SRB2_LUACODE_API" />
+					<Add option="-include thirdparty/luau/srb2_build_config.h" />
+
 					<Add option="-O2" />
 					<Add option="-g" />
 					<Add option="-DNDEBUG" />
@@ -360,6 +462,17 @@ HW3SOUND for 3D hardware sound  support
 				<Option type="3" />
 				<Option compiler="gnu_gcc_compiler_for_mingw32" />
 				<Compiler>
+					<Add option="-Ithirdparty/luau/VM/include" />
+					<Add option="-Ithirdparty/luau/VM/src" />
+					<Add option="-Ithirdparty/luau/Common/include" />
+					<Add option="-Ithirdparty/luau/Ast/include" />
+					<Add option="-Ithirdparty/luau/Bytecode/include" />
+					<Add option="-Ithirdparty/luau/Compiler/include" />
+					<Add option="-DLUA_USE_LONGJMP=1" />
+					<Add option="-DLUA_API=SRB2_LUA_API" />
+					<Add option="-DLUACODE_API=SRB2_LUACODE_API" />
+					<Add option="-include thirdparty/luau/srb2_build_config.h" />
+
 					<Add option="-march=i586" />
 					<Add option="-D__USE_MINGW_ANSI_STDIO=0" />
 					<Add option="-D_WINDOWS" />
@@ -376,6 +489,17 @@ HW3SOUND for 3D hardware sound  support
 				<Option type="3" />
 				<Option compiler="gnu_gcc_compiler_for_mingw32" />
 				<Compiler>
+					<Add option="-Ithirdparty/luau/VM/include" />
+					<Add option="-Ithirdparty/luau/VM/src" />
+					<Add option="-Ithirdparty/luau/Common/include" />
+					<Add option="-Ithirdparty/luau/Ast/include" />
+					<Add option="-Ithirdparty/luau/Bytecode/include" />
+					<Add option="-Ithirdparty/luau/Compiler/include" />
+					<Add option="-DLUA_USE_LONGJMP=1" />
+					<Add option="-DLUA_API=SRB2_LUA_API" />
+					<Add option="-DLUACODE_API=SRB2_LUACODE_API" />
+					<Add option="-include thirdparty/luau/srb2_build_config.h" />
+
 					<Add option="-march=i586" />
 					<Add option="-O2" />
 					<Add option="-D__USE_MINGW_ANSI_STDIO=0" />
@@ -393,6 +517,17 @@ HW3SOUND for 3D hardware sound  support
 				<Option type="3" />
 				<Option compiler="gnu_gcc_compiler_for_mingw32" />
 				<Compiler>
+					<Add option="-Ithirdparty/luau/VM/include" />
+					<Add option="-Ithirdparty/luau/VM/src" />
+					<Add option="-Ithirdparty/luau/Common/include" />
+					<Add option="-Ithirdparty/luau/Ast/include" />
+					<Add option="-Ithirdparty/luau/Bytecode/include" />
+					<Add option="-Ithirdparty/luau/Compiler/include" />
+					<Add option="-DLUA_USE_LONGJMP=1" />
+					<Add option="-DLUA_API=SRB2_LUA_API" />
+					<Add option="-DLUACODE_API=SRB2_LUACODE_API" />
+					<Add option="-include thirdparty/luau/srb2_build_config.h" />
+
 					<Add option="-march=i586" />
 					<Add option="-D__USE_MINGW_ANSI_STDIO=0" />
 					<Add option="-D_WINDOWS" />
@@ -409,6 +544,17 @@ HW3SOUND for 3D hardware sound  support
 				<Option type="3" />
 				<Option compiler="gnu_gcc_compiler_for_mingw32" />
 				<Compiler>
+					<Add option="-Ithirdparty/luau/VM/include" />
+					<Add option="-Ithirdparty/luau/VM/src" />
+					<Add option="-Ithirdparty/luau/Common/include" />
+					<Add option="-Ithirdparty/luau/Ast/include" />
+					<Add option="-Ithirdparty/luau/Bytecode/include" />
+					<Add option="-Ithirdparty/luau/Compiler/include" />
+					<Add option="-DLUA_USE_LONGJMP=1" />
+					<Add option="-DLUA_API=SRB2_LUA_API" />
+					<Add option="-DLUACODE_API=SRB2_LUACODE_API" />
+					<Add option="-include thirdparty/luau/srb2_build_config.h" />
+
 					<Add option="-march=i586" />
 					<Add option="-O2" />
 					<Add option="-D__USE_MINGW_ANSI_STDIO=0" />
@@ -426,6 +572,17 @@ HW3SOUND for 3D hardware sound  support
 				<Option type="3" />
 				<Option compiler="gnu_gcc_compiler_for_mingw32" />
 				<Compiler>
+					<Add option="-Ithirdparty/luau/VM/include" />
+					<Add option="-Ithirdparty/luau/VM/src" />
+					<Add option="-Ithirdparty/luau/Common/include" />
+					<Add option="-Ithirdparty/luau/Ast/include" />
+					<Add option="-Ithirdparty/luau/Bytecode/include" />
+					<Add option="-Ithirdparty/luau/Compiler/include" />
+					<Add option="-DLUA_USE_LONGJMP=1" />
+					<Add option="-DLUA_API=SRB2_LUA_API" />
+					<Add option="-DLUACODE_API=SRB2_LUACODE_API" />
+					<Add option="-include thirdparty/luau/srb2_build_config.h" />
+
 					<Add option="-march=i586" />
 					<Add option="-D__USE_MINGW_ANSI_STDIO=0" />
 					<Add option="-D_WINDOWS" />
@@ -442,6 +599,17 @@ HW3SOUND for 3D hardware sound  support
 				<Option type="3" />
 				<Option compiler="gnu_gcc_compiler_for_mingw32" />
 				<Compiler>
+					<Add option="-Ithirdparty/luau/VM/include" />
+					<Add option="-Ithirdparty/luau/VM/src" />
+					<Add option="-Ithirdparty/luau/Common/include" />
+					<Add option="-Ithirdparty/luau/Ast/include" />
+					<Add option="-Ithirdparty/luau/Bytecode/include" />
+					<Add option="-Ithirdparty/luau/Compiler/include" />
+					<Add option="-DLUA_USE_LONGJMP=1" />
+					<Add option="-DLUA_API=SRB2_LUA_API" />
+					<Add option="-DLUACODE_API=SRB2_LUACODE_API" />
+					<Add option="-include thirdparty/luau/srb2_build_config.h" />
+
 					<Add option="-march=i586" />
 					<Add option="-O2" />
 					<Add option="-D__USE_MINGW_ANSI_STDIO=0" />
@@ -459,6 +627,17 @@ HW3SOUND for 3D hardware sound  support
 				<Option type="3" />
 				<Option compiler="gnu_gcc_compiler_for_mingw32" />
 				<Compiler>
+					<Add option="-Ithirdparty/luau/VM/include" />
+					<Add option="-Ithirdparty/luau/VM/src" />
+					<Add option="-Ithirdparty/luau/Common/include" />
+					<Add option="-Ithirdparty/luau/Ast/include" />
+					<Add option="-Ithirdparty/luau/Bytecode/include" />
+					<Add option="-Ithirdparty/luau/Compiler/include" />
+					<Add option="-DLUA_USE_LONGJMP=1" />
+					<Add option="-DLUA_API=SRB2_LUA_API" />
+					<Add option="-DLUACODE_API=SRB2_LUACODE_API" />
+					<Add option="-include thirdparty/luau/srb2_build_config.h" />
+
 					<Add option="-march=i586" />
 					<Add option="-D__USE_MINGW_ANSI_STDIO=0" />
 					<Add option="-D_WINDOWS" />
@@ -475,6 +654,17 @@ HW3SOUND for 3D hardware sound  support
 				<Option type="3" />
 				<Option compiler="gnu_gcc_compiler_for_mingw32" />
 				<Compiler>
+					<Add option="-Ithirdparty/luau/VM/include" />
+					<Add option="-Ithirdparty/luau/VM/src" />
+					<Add option="-Ithirdparty/luau/Common/include" />
+					<Add option="-Ithirdparty/luau/Ast/include" />
+					<Add option="-Ithirdparty/luau/Bytecode/include" />
+					<Add option="-Ithirdparty/luau/Compiler/include" />
+					<Add option="-DLUA_USE_LONGJMP=1" />
+					<Add option="-DLUA_API=SRB2_LUA_API" />
+					<Add option="-DLUACODE_API=SRB2_LUACODE_API" />
+					<Add option="-include thirdparty/luau/srb2_build_config.h" />
+
 					<Add option="-march=i586" />
 					<Add option="-O2" />
 					<Add option="-D__USE_MINGW_ANSI_STDIO=0" />
@@ -492,6 +682,17 @@ HW3SOUND for 3D hardware sound  support
 				<Option type="3" />
 				<Option compiler="gnu_gcc_compiler_for_mingw32" />
 				<Compiler>
+					<Add option="-Ithirdparty/luau/VM/include" />
+					<Add option="-Ithirdparty/luau/VM/src" />
+					<Add option="-Ithirdparty/luau/Common/include" />
+					<Add option="-Ithirdparty/luau/Ast/include" />
+					<Add option="-Ithirdparty/luau/Bytecode/include" />
+					<Add option="-Ithirdparty/luau/Compiler/include" />
+					<Add option="-DLUA_USE_LONGJMP=1" />
+					<Add option="-DLUA_API=SRB2_LUA_API" />
+					<Add option="-DLUACODE_API=SRB2_LUACODE_API" />
+					<Add option="-include thirdparty/luau/srb2_build_config.h" />
+
 					<Add option="-march=i586" />
 					<Add option="-D__USE_MINGW_ANSI_STDIO=0" />
 					<Add option="-D_WINDOWS" />
@@ -508,6 +709,17 @@ HW3SOUND for 3D hardware sound  support
 				<Option type="3" />
 				<Option compiler="gnu_gcc_compiler_for_mingw32" />
 				<Compiler>
+					<Add option="-Ithirdparty/luau/VM/include" />
+					<Add option="-Ithirdparty/luau/VM/src" />
+					<Add option="-Ithirdparty/luau/Common/include" />
+					<Add option="-Ithirdparty/luau/Ast/include" />
+					<Add option="-Ithirdparty/luau/Bytecode/include" />
+					<Add option="-Ithirdparty/luau/Compiler/include" />
+					<Add option="-DLUA_USE_LONGJMP=1" />
+					<Add option="-DLUA_API=SRB2_LUA_API" />
+					<Add option="-DLUACODE_API=SRB2_LUACODE_API" />
+					<Add option="-include thirdparty/luau/srb2_build_config.h" />
+
 					<Add option="-march=i586" />
 					<Add option="-O2" />
 					<Add option="-D__USE_MINGW_ANSI_STDIO=0" />
@@ -525,6 +737,17 @@ HW3SOUND for 3D hardware sound  support
 				<Option type="3" />
 				<Option compiler="gcc" />
 				<Compiler>
+					<Add option="-Ithirdparty/luau/VM/include" />
+					<Add option="-Ithirdparty/luau/VM/src" />
+					<Add option="-Ithirdparty/luau/Common/include" />
+					<Add option="-Ithirdparty/luau/Ast/include" />
+					<Add option="-Ithirdparty/luau/Bytecode/include" />
+					<Add option="-Ithirdparty/luau/Compiler/include" />
+					<Add option="-DLUA_USE_LONGJMP=1" />
+					<Add option="-DLUA_API=SRB2_LUA_API" />
+					<Add option="-DLUACODE_API=SRB2_LUACODE_API" />
+					<Add option="-include thirdparty/luau/srb2_build_config.h" />
+
 					<Add option="-march=i586" />
 				</Compiler>
 				<Linker>
@@ -539,6 +762,17 @@ HW3SOUND for 3D hardware sound  support
 				<Option type="3" />
 				<Option compiler="gcc" />
 				<Compiler>
+					<Add option="-Ithirdparty/luau/VM/include" />
+					<Add option="-Ithirdparty/luau/VM/src" />
+					<Add option="-Ithirdparty/luau/Common/include" />
+					<Add option="-Ithirdparty/luau/Ast/include" />
+					<Add option="-Ithirdparty/luau/Bytecode/include" />
+					<Add option="-Ithirdparty/luau/Compiler/include" />
+					<Add option="-DLUA_USE_LONGJMP=1" />
+					<Add option="-DLUA_API=SRB2_LUA_API" />
+					<Add option="-DLUACODE_API=SRB2_LUACODE_API" />
+					<Add option="-include thirdparty/luau/srb2_build_config.h" />
+
 					<Add option="-march=i586" />
 					<Add option="-O2" />
 				</Compiler>
@@ -554,6 +788,17 @@ HW3SOUND for 3D hardware sound  support
 				<Option type="1" />
 				<Option compiler="gnu_gcc_compiler_for_mingw64" />
 				<Compiler>
+					<Add option="-Ithirdparty/luau/VM/include" />
+					<Add option="-Ithirdparty/luau/VM/src" />
+					<Add option="-Ithirdparty/luau/Common/include" />
+					<Add option="-Ithirdparty/luau/Ast/include" />
+					<Add option="-Ithirdparty/luau/Bytecode/include" />
+					<Add option="-Ithirdparty/luau/Compiler/include" />
+					<Add option="-DLUA_USE_LONGJMP=1" />
+					<Add option="-DLUA_API=SRB2_LUA_API" />
+					<Add option="-DLUACODE_API=SRB2_LUACODE_API" />
+					<Add option="-include thirdparty/luau/srb2_build_config.h" />
+
 					<Add option="-g" />
 					<Add option="-D_GNU_SOURCE=1" />
 					<Add option="-DSTDC_HEADERS" />
@@ -568,7 +813,6 @@ HW3SOUND for 3D hardware sound  support
 					<Add option="-DRANGECHECK" />
 					<Add option="-D_DEBUG" />
 					<Add option="-DCOMPVERSION" />
-					<Add option="-DHAVE_BLUA" />
 					<Add directory="libs/libpng-src" />
 					<Add directory="libs/zlib" />
 				</Compiler>
@@ -594,6 +838,17 @@ HW3SOUND for 3D hardware sound  support
 				<Option type="1" />
 				<Option compiler="gnu_gcc_compiler_for_mingw64" />
 				<Compiler>
+					<Add option="-Ithirdparty/luau/VM/include" />
+					<Add option="-Ithirdparty/luau/VM/src" />
+					<Add option="-Ithirdparty/luau/Common/include" />
+					<Add option="-Ithirdparty/luau/Ast/include" />
+					<Add option="-Ithirdparty/luau/Bytecode/include" />
+					<Add option="-Ithirdparty/luau/Compiler/include" />
+					<Add option="-DLUA_USE_LONGJMP=1" />
+					<Add option="-DLUA_API=SRB2_LUA_API" />
+					<Add option="-DLUACODE_API=SRB2_LUACODE_API" />
+					<Add option="-include thirdparty/luau/srb2_build_config.h" />
+
 					<Add option="-O2" />
 					<Add option="-g" />
 					<Add option="-D_GNU_SOURCE=1" />
@@ -607,7 +862,6 @@ HW3SOUND for 3D hardware sound  support
 					<Add option="-DHAVE_PNG" />
 					<Add option="-DNDEBUG" />
 					<Add option="-DCOMPVERSION" />
-					<Add option="-DHAVE_BLUA" />
 					<Add directory="libs/libpng-src" />
 					<Add directory="libs/zlib" />
 				</Compiler>
@@ -633,6 +887,17 @@ HW3SOUND for 3D hardware sound  support
 				<Option type="0" />
 				<Option compiler="gnu_gcc_compiler_for_mingw64" />
 				<Compiler>
+					<Add option="-Ithirdparty/luau/VM/include" />
+					<Add option="-Ithirdparty/luau/VM/src" />
+					<Add option="-Ithirdparty/luau/Common/include" />
+					<Add option="-Ithirdparty/luau/Ast/include" />
+					<Add option="-Ithirdparty/luau/Bytecode/include" />
+					<Add option="-Ithirdparty/luau/Compiler/include" />
+					<Add option="-DLUA_USE_LONGJMP=1" />
+					<Add option="-DLUA_API=SRB2_LUA_API" />
+					<Add option="-DLUACODE_API=SRB2_LUACODE_API" />
+					<Add option="-include thirdparty/luau/srb2_build_config.h" />
+
 					<Add option="-g" />
 					<Add option="-DSTDC_HEADERS" />
 					<Add option="-D_WINDOWS" />
@@ -643,7 +908,6 @@ HW3SOUND for 3D hardware sound  support
 					<Add option="-DRANGECHECK" />
 					<Add option="-D_DEBUG" />
 					<Add option="-DCOMPVERSION" />
-					<Add option="-DHAVE_BLUA" />
 					<Add directory="libs/libpng-src" />
 					<Add directory="libs/zlib" />
 					<Add directory="libs/fmodex/inc" />
@@ -677,6 +941,17 @@ HW3SOUND for 3D hardware sound  support
 				<Option type="0" />
 				<Option compiler="gnu_gcc_compiler_for_mingw64" />
 				<Compiler>
+					<Add option="-Ithirdparty/luau/VM/include" />
+					<Add option="-Ithirdparty/luau/VM/src" />
+					<Add option="-Ithirdparty/luau/Common/include" />
+					<Add option="-Ithirdparty/luau/Ast/include" />
+					<Add option="-Ithirdparty/luau/Bytecode/include" />
+					<Add option="-Ithirdparty/luau/Compiler/include" />
+					<Add option="-DLUA_USE_LONGJMP=1" />
+					<Add option="-DLUA_API=SRB2_LUA_API" />
+					<Add option="-DLUACODE_API=SRB2_LUACODE_API" />
+					<Add option="-include thirdparty/luau/srb2_build_config.h" />
+
 					<Add option="-O2" />
 					<Add option="-g" />
 					<Add option="-DSTDC_HEADERS" />
@@ -686,7 +961,6 @@ HW3SOUND for 3D hardware sound  support
 					<Add option="-DHAVE_PNG" />
 					<Add option="-DNDEBUG" />
 					<Add option="-DCOMPVERSION" />
-					<Add option="-DHAVE_BLUA" />
 					<Add directory="libs/libpng-src" />
 					<Add directory="libs/zlib" />
 					<Add directory="libs/fmodex/inc" />
@@ -720,6 +994,17 @@ HW3SOUND for 3D hardware sound  support
 				<Option type="3" />
 				<Option compiler="gnu_gcc_compiler_for_mingw64" />
 				<Compiler>
+					<Add option="-Ithirdparty/luau/VM/include" />
+					<Add option="-Ithirdparty/luau/VM/src" />
+					<Add option="-Ithirdparty/luau/Common/include" />
+					<Add option="-Ithirdparty/luau/Ast/include" />
+					<Add option="-Ithirdparty/luau/Bytecode/include" />
+					<Add option="-Ithirdparty/luau/Compiler/include" />
+					<Add option="-DLUA_USE_LONGJMP=1" />
+					<Add option="-DLUA_API=SRB2_LUA_API" />
+					<Add option="-DLUACODE_API=SRB2_LUACODE_API" />
+					<Add option="-include thirdparty/luau/srb2_build_config.h" />
+
 					<Add option="-D__USE_MINGW_ANSI_STDIO=0" />
 					<Add option="-D_WINDOWS" />
 				</Compiler>
@@ -735,6 +1020,17 @@ HW3SOUND for 3D hardware sound  support
 				<Option type="3" />
 				<Option compiler="gnu_gcc_compiler_for_mingw64" />
 				<Compiler>
+					<Add option="-Ithirdparty/luau/VM/include" />
+					<Add option="-Ithirdparty/luau/VM/src" />
+					<Add option="-Ithirdparty/luau/Common/include" />
+					<Add option="-Ithirdparty/luau/Ast/include" />
+					<Add option="-Ithirdparty/luau/Bytecode/include" />
+					<Add option="-Ithirdparty/luau/Compiler/include" />
+					<Add option="-DLUA_USE_LONGJMP=1" />
+					<Add option="-DLUA_API=SRB2_LUA_API" />
+					<Add option="-DLUACODE_API=SRB2_LUACODE_API" />
+					<Add option="-include thirdparty/luau/srb2_build_config.h" />
+
 					<Add option="-O2" />
 					<Add option="-D__USE_MINGW_ANSI_STDIO=0" />
 					<Add option="-D_WINDOWS" />
@@ -751,6 +1047,17 @@ HW3SOUND for 3D hardware sound  support
 				<Option type="3" />
 				<Option compiler="gnu_gcc_compiler_for_mingw64" />
 				<Compiler>
+					<Add option="-Ithirdparty/luau/VM/include" />
+					<Add option="-Ithirdparty/luau/VM/src" />
+					<Add option="-Ithirdparty/luau/Common/include" />
+					<Add option="-Ithirdparty/luau/Ast/include" />
+					<Add option="-Ithirdparty/luau/Bytecode/include" />
+					<Add option="-Ithirdparty/luau/Compiler/include" />
+					<Add option="-DLUA_USE_LONGJMP=1" />
+					<Add option="-DLUA_API=SRB2_LUA_API" />
+					<Add option="-DLUACODE_API=SRB2_LUACODE_API" />
+					<Add option="-include thirdparty/luau/srb2_build_config.h" />
+
 					<Add option="-Os" />
 					<Add option="-D__USE_MINGW_ANSI_STDIO=0" />
 					<Add option="-D_WINDOWS" />
@@ -767,6 +1074,17 @@ HW3SOUND for 3D hardware sound  support
 				<Option type="3" />
 				<Option compiler="gnu_gcc_compiler_for_mingw64" />
 				<Compiler>
+					<Add option="-Ithirdparty/luau/VM/include" />
+					<Add option="-Ithirdparty/luau/VM/src" />
+					<Add option="-Ithirdparty/luau/Common/include" />
+					<Add option="-Ithirdparty/luau/Ast/include" />
+					<Add option="-Ithirdparty/luau/Bytecode/include" />
+					<Add option="-Ithirdparty/luau/Compiler/include" />
+					<Add option="-DLUA_USE_LONGJMP=1" />
+					<Add option="-DLUA_API=SRB2_LUA_API" />
+					<Add option="-DLUACODE_API=SRB2_LUACODE_API" />
+					<Add option="-include thirdparty/luau/srb2_build_config.h" />
+
 					<Add option="-O2" />
 					<Add option="-D__USE_MINGW_ANSI_STDIO=0" />
 					<Add option="-D_WINDOWS" />
@@ -783,6 +1101,17 @@ HW3SOUND for 3D hardware sound  support
 				<Option type="3" />
 				<Option compiler="gnu_gcc_compiler_for_mingw64" />
 				<Compiler>
+					<Add option="-Ithirdparty/luau/VM/include" />
+					<Add option="-Ithirdparty/luau/VM/src" />
+					<Add option="-Ithirdparty/luau/Common/include" />
+					<Add option="-Ithirdparty/luau/Ast/include" />
+					<Add option="-Ithirdparty/luau/Bytecode/include" />
+					<Add option="-Ithirdparty/luau/Compiler/include" />
+					<Add option="-DLUA_USE_LONGJMP=1" />
+					<Add option="-DLUA_API=SRB2_LUA_API" />
+					<Add option="-DLUACODE_API=SRB2_LUACODE_API" />
+					<Add option="-include thirdparty/luau/srb2_build_config.h" />
+
 					<Add option="-D__USE_MINGW_ANSI_STDIO=0" />
 					<Add option="-D_WINDOWS" />
 				</Compiler>
@@ -798,6 +1127,17 @@ HW3SOUND for 3D hardware sound  support
 				<Option type="3" />
 				<Option compiler="gnu_gcc_compiler_for_mingw64" />
 				<Compiler>
+					<Add option="-Ithirdparty/luau/VM/include" />
+					<Add option="-Ithirdparty/luau/VM/src" />
+					<Add option="-Ithirdparty/luau/Common/include" />
+					<Add option="-Ithirdparty/luau/Ast/include" />
+					<Add option="-Ithirdparty/luau/Bytecode/include" />
+					<Add option="-Ithirdparty/luau/Compiler/include" />
+					<Add option="-DLUA_USE_LONGJMP=1" />
+					<Add option="-DLUA_API=SRB2_LUA_API" />
+					<Add option="-DLUACODE_API=SRB2_LUACODE_API" />
+					<Add option="-include thirdparty/luau/srb2_build_config.h" />
+
 					<Add option="-O2" />
 					<Add option="-D__USE_MINGW_ANSI_STDIO=0" />
 					<Add option="-D_WINDOWS" />
@@ -814,6 +1154,17 @@ HW3SOUND for 3D hardware sound  support
 				<Option type="3" />
 				<Option compiler="gnu_gcc_compiler_for_mingw64" />
 				<Compiler>
+					<Add option="-Ithirdparty/luau/VM/include" />
+					<Add option="-Ithirdparty/luau/VM/src" />
+					<Add option="-Ithirdparty/luau/Common/include" />
+					<Add option="-Ithirdparty/luau/Ast/include" />
+					<Add option="-Ithirdparty/luau/Bytecode/include" />
+					<Add option="-Ithirdparty/luau/Compiler/include" />
+					<Add option="-DLUA_USE_LONGJMP=1" />
+					<Add option="-DLUA_API=SRB2_LUA_API" />
+					<Add option="-DLUACODE_API=SRB2_LUACODE_API" />
+					<Add option="-include thirdparty/luau/srb2_build_config.h" />
+
 					<Add option="-D__USE_MINGW_ANSI_STDIO=0" />
 					<Add option="-D_WINDOWS" />
 				</Compiler>
@@ -829,6 +1180,17 @@ HW3SOUND for 3D hardware sound  support
 				<Option type="3" />
 				<Option compiler="gnu_gcc_compiler_for_mingw64" />
 				<Compiler>
+					<Add option="-Ithirdparty/luau/VM/include" />
+					<Add option="-Ithirdparty/luau/VM/src" />
+					<Add option="-Ithirdparty/luau/Common/include" />
+					<Add option="-Ithirdparty/luau/Ast/include" />
+					<Add option="-Ithirdparty/luau/Bytecode/include" />
+					<Add option="-Ithirdparty/luau/Compiler/include" />
+					<Add option="-DLUA_USE_LONGJMP=1" />
+					<Add option="-DLUA_API=SRB2_LUA_API" />
+					<Add option="-DLUACODE_API=SRB2_LUACODE_API" />
+					<Add option="-include thirdparty/luau/srb2_build_config.h" />
+
 					<Add option="-O2" />
 					<Add option="-D__USE_MINGW_ANSI_STDIO=0" />
 					<Add option="-D_WINDOWS" />
@@ -845,6 +1207,17 @@ HW3SOUND for 3D hardware sound  support
 				<Option type="3" />
 				<Option compiler="gnu_gcc_compiler_for_mingw64" />
 				<Compiler>
+					<Add option="-Ithirdparty/luau/VM/include" />
+					<Add option="-Ithirdparty/luau/VM/src" />
+					<Add option="-Ithirdparty/luau/Common/include" />
+					<Add option="-Ithirdparty/luau/Ast/include" />
+					<Add option="-Ithirdparty/luau/Bytecode/include" />
+					<Add option="-Ithirdparty/luau/Compiler/include" />
+					<Add option="-DLUA_USE_LONGJMP=1" />
+					<Add option="-DLUA_API=SRB2_LUA_API" />
+					<Add option="-DLUACODE_API=SRB2_LUACODE_API" />
+					<Add option="-include thirdparty/luau/srb2_build_config.h" />
+
 					<Add option="-D__USE_MINGW_ANSI_STDIO=0" />
 					<Add option="-D_WINDOWS" />
 				</Compiler>
@@ -860,6 +1233,17 @@ HW3SOUND for 3D hardware sound  support
 				<Option type="3" />
 				<Option compiler="gnu_gcc_compiler_for_mingw64" />
 				<Compiler>
+					<Add option="-Ithirdparty/luau/VM/include" />
+					<Add option="-Ithirdparty/luau/VM/src" />
+					<Add option="-Ithirdparty/luau/Common/include" />
+					<Add option="-Ithirdparty/luau/Ast/include" />
+					<Add option="-Ithirdparty/luau/Bytecode/include" />
+					<Add option="-Ithirdparty/luau/Compiler/include" />
+					<Add option="-DLUA_USE_LONGJMP=1" />
+					<Add option="-DLUA_API=SRB2_LUA_API" />
+					<Add option="-DLUACODE_API=SRB2_LUACODE_API" />
+					<Add option="-include thirdparty/luau/srb2_build_config.h" />
+
 					<Add option="-O2" />
 					<Add option="-D__USE_MINGW_ANSI_STDIO=0" />
 					<Add option="-D_WINDOWS" />
@@ -870,7 +1254,18 @@ HW3SOUND for 3D hardware sound  support
 				</Linker>
 			</Target>
 		</Build>
-		<Compiler>
+		<Compiler>			<Add option="-Ithirdparty/luau/VM/include" />
+			<Add option="-Ithirdparty/luau/VM/src" />
+			<Add option="-Ithirdparty/luau/Common/include" />
+			<Add option="-Ithirdparty/luau/Ast/include" />
+			<Add option="-Ithirdparty/luau/Bytecode/include" />
+			<Add option="-Ithirdparty/luau/Compiler/include" />
+			<Add option="-DLUA_USE_LONGJMP=1" />
+			<Add option="-DLUA_API=SRB2_LUA_API" />
+			<Add option="-DLUACODE_API=SRB2_LUACODE_API" />
+			<Add option="-include thirdparty/luau/srb2_build_config.h" />
+			<Add option="-std=c++17" />
+
 			<Add option="-W" />
 			<Add option="-Wall" />
 			<Add option="-g" />
@@ -898,101 +1293,6 @@ HW3SOUND for 3D hardware sound  support
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="src/b_bot.h" />
-		<Unit filename="src/blua/lapi.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/blua/lapi.h" />
-		<Unit filename="src/blua/lauxlib.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/blua/lauxlib.h" />
-		<Unit filename="src/blua/lbaselib.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/blua/lcode.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/blua/lcode.h" />
-		<Unit filename="src/blua/ldebug.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/blua/ldebug.h" />
-		<Unit filename="src/blua/ldo.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/blua/ldo.h" />
-		<Unit filename="src/blua/ldump.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/blua/lfunc.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/blua/lfunc.h" />
-		<Unit filename="src/blua/lgc.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/blua/lgc.h" />
-		<Unit filename="src/blua/linit.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/blua/llex.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/blua/llex.h" />
-		<Unit filename="src/blua/llimits.h" />
-		<Unit filename="src/blua/lmem.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/blua/lmem.h" />
-		<Unit filename="src/blua/lobject.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/blua/lobject.h" />
-		<Unit filename="src/blua/lopcodes.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/blua/lopcodes.h" />
-		<Unit filename="src/blua/lparser.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/blua/lparser.h" />
-		<Unit filename="src/blua/lstate.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/blua/lstate.h" />
-		<Unit filename="src/blua/lstring.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/blua/lstring.h" />
-		<Unit filename="src/blua/lstrlib.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/blua/ltable.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/blua/ltable.h" />
-		<Unit filename="src/blua/ltablib.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/blua/ltm.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/blua/ltm.h" />
-		<Unit filename="src/blua/lua.h" />
-		<Unit filename="src/blua/luaconf.h" />
-		<Unit filename="src/blua/lualib.h" />
-		<Unit filename="src/blua/lundump.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/blua/lundump.h" />
-		<Unit filename="src/blua/lvm.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/blua/lvm.h" />
-		<Unit filename="src/blua/lzio.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/blua/lzio.h" />
 		<Unit filename="src/byteptr.h" />
 		<Unit filename="src/command.c">
 			<Option compilerVar="CC" />
@@ -2133,5 +2433,381 @@ HW3SOUND for 3D hardware sound  support
 			<debugger />
 			<lib_finder disable_auto="1" />
 		</Extensions>
-	</Project>
+			<Unit filename="src/lua_luau.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/Common/src/BytecodeWire.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/Common/src/StringUtils.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/Common/src/TimeTrace.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/Ast/src/Allocator.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/Ast/src/Ast.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/Ast/src/Confusables.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/Ast/src/Cst.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/Ast/src/Lexer.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/Ast/src/Location.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/Ast/src/Parser.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/Ast/src/PrettyPrinter.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/Bytecode/src/BytecodeBuilder.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/Bytecode/src/BytecodeDump.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/Bytecode/src/BytecodeGraph.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/Bytecode/src/Sccp.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/Compiler/src/Compiler.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/Compiler/src/Builtins.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/Compiler/src/BuiltinFolding.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/Compiler/src/ConstantFolding.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/Compiler/src/CostModel.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/Compiler/src/TableShape.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/Compiler/src/Types.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/Compiler/src/ValueTracking.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/Compiler/src/lcode.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/VM/src/lapi.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/VM/src/laux.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/VM/src/lbaselib.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/VM/src/lbitlib.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/VM/src/lbuffer.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/VM/src/lbuflib.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/VM/src/lbuiltins.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/VM/src/lcorolib.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/VM/src/ldblib.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/VM/src/ldebug.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/VM/src/ldo.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/VM/src/lfunc.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/VM/src/lgc.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/VM/src/lgcdebug.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/VM/src/linit.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/VM/src/lmathlib.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/VM/src/lmem.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/VM/src/lnumprint.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/VM/src/lobject.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/VM/src/loslib.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/VM/src/lperf.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/VM/src/lstate.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/VM/src/lstring.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/VM/src/lstrlib.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/VM/src/ltable.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/VM/src/ltablib.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/VM/src/ltm.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/VM/src/ludata.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/VM/src/lutf8lib.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/VM/src/lveclib.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/VM/src/lintlib.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/VM/src/lvmexecute.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/VM/src/lclass.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/VM/src/lclasslib.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/VM/src/lvector.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/VM/src/lvmload.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/VM/src/lvmutils.cpp">
+			<Option compilerVar="CPP" />
+			<Compiler>
+				<Add option="-std=c++17" />
+			</Compiler>
+		</Unit>
+		<Unit filename="thirdparty/luau/VM/include/lua.h" />
+		<Unit filename="thirdparty/luau/VM/include/lualib.h" />
+		<Unit filename="thirdparty/luau/Compiler/include/luacode.h" />
+		<Unit filename="thirdparty/luau/srb2_build_config.h" />
+</Project>
 </CodeBlocks_project_file>

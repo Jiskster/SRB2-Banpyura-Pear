@@ -87,6 +87,7 @@ add_executable(SRB2SDL2 MACOSX_BUNDLE WIN32
 	u_list.c
 	snake.c
 	lua_script.c
+	lua_luau.cpp
 	lua_baselib.c
 	lua_mathlib.c
 	lua_hooklib.c
@@ -151,7 +152,21 @@ target_compile_features(SRB2SDL2 PRIVATE c_std_23 cxx_std_17)
 set(SRB2_CONFIG_DEV_BUILD OFF CACHE BOOL
 	"Compile a development build of SRB2.")
 
-add_subdirectory(blua)
+set(LUAU_BUILD_CLI OFF CACHE BOOL "Disable Luau command-line tools" FORCE)
+set(LUAU_BUILD_TESTS OFF CACHE BOOL "Disable Luau tests" FORCE)
+set(LUAU_BUILD_WEB OFF CACHE BOOL "Disable Luau Web module" FORCE)
+set(LUAU_BUILD_SHARED OFF CACHE BOOL "Build Luau as static libraries" FORCE)
+set(LUAU_EXTERN_C ON CACHE BOOL "Export the Luau API with C linkage" FORCE)
+
+add_subdirectory("${PROJECT_SOURCE_DIR}/thirdparty/luau"
+	"${CMAKE_CURRENT_BINARY_DIR}/luau" EXCLUDE_FROM_ALL)
+
+# Luau's API is consumed by SRB2's C sources; they already have C linkage.
+# Keep Luau's ABI configuration private to the C++ runtime and compiler.
+set_property(TARGET Luau.VM PROPERTY INTERFACE_COMPILE_DEFINITIONS "")
+set_property(TARGET Luau.Compiler PROPERTY INTERFACE_COMPILE_DEFINITIONS "")
+target_compile_definitions(SRB2SDL2 PRIVATE LUA_USE_LONGJMP=1)
+target_link_libraries(SRB2SDL2 PRIVATE Luau.VM Luau.Compiler)
 add_subdirectory(netcode)
 
 # OS macros

@@ -59,11 +59,6 @@ static boolean nospawnnull_seen = false; // TODO: 2.3: Delete
 /*#define NOSPAWNNULL if (type <= MT_NULL || type >= NUMMOBJTYPES)\
 return luaL_error(L, "mobj type %d out of range (1 - %d)", type, NUMMOBJTYPES-1);*/
 
-boolean luaL_checkboolean(lua_State *L, int narg) {
-	luaL_checktype(L, narg, LUA_TBOOLEAN);
-	return lua_toboolean(L, narg);
-}
-
 // String concatination
 static int lib_concat(lua_State *L)
 {

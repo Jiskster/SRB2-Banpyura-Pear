@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
@@ -9,7 +9,9 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>HAVE_PNG;COMPVERSION;HAVE_BLUA;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>HAVE_PNG;COMPVERSION;LUA_USE_LONGJMP=1;LUA_API=SRB2_LUA_API;LUACODE_API=SRB2_LUACODE_API;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)thirdparty\luau\VM\include;$(SolutionDir)thirdparty\luau\VM\src;$(SolutionDir)thirdparty\luau\Common\include;$(SolutionDir)thirdparty\luau\Ast\include;$(SolutionDir)thirdparty\luau\Bytecode\include;$(SolutionDir)thirdparty\luau\Compiler\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ForcedIncludeFiles>$(SolutionDir)thirdparty\luau\srb2_build_config.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <CompileAs>CompileAsC</CompileAs>
       <BrowseInformation>true</BrowseInformation>
       <TreatWarningAsError>true</TreatWarningAsError>

@@ -96,8 +96,6 @@ extern boolean ignoregameinputs;
 #define META_KEYEVENT "KEYEVENT_T*"
 #define META_MOUSE "MOUSE_T*"
 
-boolean luaL_checkboolean(lua_State *L, int narg);
-
 int LUA_EnumLib(lua_State *L);
 int LUA_SOCLib(lua_State *L);
 int LUA_BaseLib(lua_State *L);

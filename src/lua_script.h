@@ -20,9 +20,88 @@
 #include "g_state.h"
 #include "taglist.h"
 
-#include "blua/lua.h"
-#include "blua/lualib.h"
-#include "blua/lauxlib.h"
+#include <string.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include <lua.h>
+#include <lualib.h>
+int LUA_LoadBuffer(lua_State *L, const char *buffer, size_t size, const char *name);
+char *LUA_CompileBuffer(const char *buffer, size_t size, size_t *bytecode_size);
+#ifdef __cplusplus
+}
+#endif
+
+#undef lua_pushcfunction
+#define lua_pushcfunction(L, f) lua_pushcclosurek((L), (f), #f, 0, NULL)
+#undef lua_pushcclosure
+#define lua_pushcclosure(L, f, n) lua_pushcclosurek((L), (f), #f, (n), NULL)
+#define luaL_loadbuffer(L, b, s, n) LUA_LoadBuffer((L), (const char *)(b), (s), (n))
+#define luaL_loadstring(L, s) LUA_LoadBuffer((L), (s), strlen(s), (s))
+#define luaL_dostring(L, s) (luaL_loadstring((L), (s)) || lua_pcall((L), 0, LUA_MULTRET, 0))
+#define LUA_QL(x) "'" x "'"
+#define LUA_QS "%s"
+
+#define luaL_typerror(L, n, t) (luaL_typeerror((L), (n), (t)), 0)
+#define luaL_getn(L, i) lua_objlen((L), (i))
+#undef luaL_error
+#define luaL_error(L, ...) (luaL_errorL((L), __VA_ARGS__), 0)
+#undef luaL_argerror
+#define luaL_argerror(L, n, message) (luaL_argerrorL((L), (n), (message)), 0)
+#define lua_register(L, n, f) (lua_pushcfunction((L), (f)), lua_setglobal((L), (n)))
+
+static inline int LUA_CompatRef(lua_State *L, int table)
+{
+	int reference;
+
+	if (lua_isnil(L, -1))
+	{
+		lua_pop(L, 1);
+		return LUA_REFNIL;
+	}
+
+	if (table == LUA_REGISTRYINDEX)
+		reference = lua_ref(L, -1);
+	else
+	{
+		lua_rawgeti(L, table, 0);
+		reference = lua_tointeger(L, -1);
+		lua_pop(L, 1);
+
+		if (reference)
+		{
+			lua_rawgeti(L, table, reference);
+			lua_rawseti(L, table, 0);
+		}
+		else
+			reference = lua_objlen(L, table) + 1;
+
+		lua_rawseti(L, table, reference);
+	}
+
+	lua_pop(L, 1);
+	return reference;
+}
+
+static inline void LUA_CompatUnref(lua_State *L, int table, int reference)
+{
+	if (reference <= LUA_REFNIL)
+		return;
+
+	if (table == LUA_REGISTRYINDEX)
+		lua_unref(L, reference);
+	else
+	{
+		lua_rawgeti(L, table, 0);
+		lua_rawseti(L, table, reference);
+		lua_pushinteger(L, reference);
+		lua_rawseti(L, table, 0);
+	}
+}
+
+#define luaL_ref(L, table) LUA_CompatRef((L), (table))
+#define luaL_unref(L, table, reference) LUA_CompatUnref((L), (table), (reference))
 
 #define lua_optboolean(L, i) (!lua_isnoneornil(L, i) && lua_toboolean(L, i))
 #define lua_opttrueboolean(L, i) (lua_isnoneornil(L, i) || lua_toboolean(L, i))

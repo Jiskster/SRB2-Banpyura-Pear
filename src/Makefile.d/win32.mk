@@ -16,6 +16,8 @@ endif
 sources+=win32/Srb2win.rc
 opts+=-DSTDC_HEADERS
 libs+=-ladvapi32 -lkernel32 -lmsvcrt -luser32
+# Luau is C++ but its MinGW exception runtime should not be a deployment dependency.
+libs+=-static-libgcc
 
 ifndef DEDICATED
 ifndef DUMMY

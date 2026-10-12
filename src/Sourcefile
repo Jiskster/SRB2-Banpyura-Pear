@@ -81,6 +81,7 @@ b_bot.c
 u_list.c
 snake.c
 lua_script.c
+lua_luau.cpp
 lua_baselib.c
 lua_mathlib.c
 lua_hooklib.c
