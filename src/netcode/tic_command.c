@@ -234,7 +234,7 @@ void PT_ServerTics(SINT8 node, INT32 netconsole)
 	tic_t realend, realstart;
 	servertics_pak *packet = &netbuffer->u.serverpak;
 
-	if (node == splitservernode)
+	if (node == splitservernode || CL_IsTestClientNode(node))
 		return;
 
 	if (!netnodes[node].ingame)
@@ -293,6 +293,8 @@ void CL_SendClientCmd(void)
 {
 	size_t packetsize = 0;
 	boolean mis = false;
+
+	CL_SendTestClientCommands();
 
 	netbuffer->packettype = PT_CLIENTCMD;
 

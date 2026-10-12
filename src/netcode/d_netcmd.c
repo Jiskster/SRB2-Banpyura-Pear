@@ -246,6 +246,7 @@ consvar_t cv_allowseenames = CVAR_INIT ("allowseenames", "Yes", CV_SAVE|CV_NETVA
 consvar_t cv_playername = CVAR_INIT ("name", "Sonic", CV_SAVE|CV_CALL|CV_NOINIT, NULL, Name_OnChange);
 consvar_t cv_playername2 = CVAR_INIT ("name2", "Tails", CV_SAVE|CV_CALL|CV_NOINIT, NULL, Name2_OnChange);
 consvar_t cv_joinsplitscreen = CVAR_INIT ("joinsplitscreen", "Off", CV_SAVE, CV_OnOff, NULL);
+consvar_t cv_testclients = CVAR_INIT ("testclients", "0", CV_CALL, CV_Unsigned, CL_TestClientsChanged);
 // player colors
 UINT16 lastgoodcolor = SKINCOLOR_BLUE, lastgoodcolor2 = SKINCOLOR_BLUE;
 consvar_t cv_playercolor = CVAR_INIT ("color", "Blue", CV_CALL|CV_NOINIT|CV_ALLOWLUA, Color_cons_t, Color_OnChange);
@@ -762,6 +763,7 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_playercolor2);
 	CV_RegisterVar(&cv_skin2);
 	CV_RegisterVar(&cv_joinsplitscreen);
+	CV_RegisterVar(&cv_testclients);
 	// saved versions of the above six
 	CV_RegisterVar(&cv_defaultplayercolor);
 	CV_RegisterVar(&cv_defaultskin);

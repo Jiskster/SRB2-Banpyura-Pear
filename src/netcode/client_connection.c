@@ -59,6 +59,251 @@ SINT8 splitservernode = -1;
 UINT8 splitmynode = UINT8_MAX;
 static void *snake = NULL;
 
+typedef struct
+{
+	SINT8 node;
+	UINT8 servernode;
+	INT8 playernum;
+} testclient_t;
+
+static testclient_t testclients[MAXPLAYERS];
+static boolean testclientplayers[MAXPLAYERS];
+static boolean testclientsinitialized;
+static tic_t testclientnextjoin;
+
+static void InitTestClients(void)
+{
+	if (testclientsinitialized)
+		return;
+	for (INT32 i = 0; i < MAXPLAYERS; i++)
+	{
+		testclients[i].node = -1;
+		testclients[i].servernode = UINT8_MAX;
+		testclients[i].playernum = -1;
+	}
+	testclientsinitialized = true;
+}
+
+static testclient_t *FindTestClient(INT32 node)
+{
+	InitTestClients();
+	for (INT32 i = 0; i < MAXPLAYERS; i++)
+		if (testclients[i].node == node)
+			return &testclients[i];
+	return NULL;
+}
+
+boolean CL_IsTestClientNode(INT32 node)
+{
+	return FindTestClient(node) != NULL;
+}
+
+boolean CL_IsTestClientPlayer(INT32 playernum)
+{
+	return playernum >= 0 && playernum < MAXPLAYERS
+		&& testclientplayers[playernum];
+}
+
+void CL_MarkTestClientPlayer(INT32 servernode, INT32 playernum)
+{
+	testclient_t *testclient;
+	if (playernum < 0 || playernum >= MAXPLAYERS)
+		return;
+	testclient = NULL;
+	for (INT32 i = 0; i < MAXPLAYERS; i++)
+		if (testclients[i].node >= 0 && testclients[i].servernode == servernode)
+		{
+			testclient = &testclients[i];
+			break;
+		}
+	if (!testclient)
+		return;
+	testclient->playernum = (INT8)playernum;
+	testclientplayers[playernum] = true;
+}
+
+void CL_ClearTestClientPlayer(INT32 playernum)
+{
+	if (playernum >= 0 && playernum < MAXPLAYERS)
+		testclientplayers[playernum] = false;
+}
+
+static void RemoveTestClient(testclient_t *testclient, boolean closeconnection)
+{
+	const SINT8 node = testclient->node;
+	if (node < 0)
+		return;
+	if (testclient->playernum >= 0)
+		testclientplayers[(UINT8)testclient->playernum] = false;
+	testclient->node = -1;
+	testclient->servernode = UINT8_MAX;
+	testclient->playernum = -1;
+	CL_ResetDiscardedGameState(node);
+	if (closeconnection)
+		Net_CloseConnection(node | 0x8000);
+	ResetNode(node);
+	testclientnextjoin = I_GetTime() + 3*TICRATE;
+}
+
+void CL_TestClientConnectionLost(SINT8 node)
+{
+	testclient_t *testclient = FindTestClient(node);
+	if (testclient)
+		RemoveTestClient(testclient, true);
+}
+
+void CL_TestClientNodeAccepted(SINT8 node, UINT8 servernode)
+{
+	testclient_t *testclient = FindTestClient(node);
+	if (testclient)
+	{
+		testclient->servernode = servernode;
+		netnodes[(UINT8)node].ingame = true;
+	}
+}
+
+void CL_ResetTestClients(void)
+{
+	InitTestClients();
+	for (INT32 i = 0; i < MAXPLAYERS; i++)
+		if (testclients[i].node >= 0)
+		{
+			if (netbuffer && netnodes[(UINT8)testclients[i].node].ingame)
+			{
+				netbuffer->packettype = PT_CLIENTQUIT;
+				HSendPacket(testclients[i].node, true, 0, 0);
+			}
+			RemoveTestClient(&testclients[i], true);
+		}
+	testclientnextjoin = 0;
+}
+
+void CL_TestClientsChanged(void)
+{
+	if (cv_testclients.value > MAXPLAYERS - 1)
+	{
+		CV_SetValue(&cv_testclients, MAXPLAYERS - 1);
+		return;
+	}
+	testclientnextjoin = I_GetTime();
+	CL_TestClientsTicker();
+}
+
+void CL_TestClientsTicker(void)
+{
+	INT32 active = 0;
+	INT32 target;
+	testclient_t *freeclient = NULL;
+
+	InitTestClients();
+	if (!client || !netgame || cl_mode != CL_CONNECTED)
+		return;
+
+	target = cv_testclients.value;
+	target = min(target, MAXPLAYERS - ((splitscreen || botingame) ? 2 : 1));
+	for (INT32 i = 0; i < MAXPLAYERS; i++)
+	{
+		if (testclients[i].node >= 0)
+			active++;
+		else if (!freeclient)
+			freeclient = &testclients[i];
+	}
+
+	while (active > target)
+	{
+		INT32 i;
+		for (i = MAXPLAYERS - 1; i >= 0; i--)
+			if (testclients[i].node >= 0)
+				break;
+		if (i < 0)
+			break;
+		if (netnodes[(UINT8)testclients[i].node].ingame)
+		{
+			netbuffer->packettype = PT_CLIENTQUIT;
+			HSendPacket(testclients[i].node, true, 0, 0);
+		}
+		RemoveTestClient(&testclients[i], true);
+		active--;
+	}
+
+	if (active >= target || !freeclient || I_GetTime() < testclientnextjoin)
+		return;
+
+	{
+		char addressbuffer[128];
+		char *hostname, *port;
+		const char *nodeaddress = I_GetNodeAddress
+			? I_GetNodeAddress((UINT8)servernode) : NULL;
+		SINT8 node;
+		INT32 index = (INT32)(freeclient - testclients);
+		if (!I_NetMakeSplitNodewPort || !nodeaddress || !nodeaddress[0])
+		{
+			testclientnextjoin = I_GetTime() + 3*TICRATE;
+			return;
+		}
+		strlcpy(addressbuffer, nodeaddress, sizeof(addressbuffer));
+		hostname = I_NetSplitAddress(addressbuffer, &port);
+		if (!hostname || !hostname[0])
+		{
+			testclientnextjoin = I_GetTime() + 3*TICRATE;
+			return;
+		}
+
+		node = I_NetMakeSplitNodewPort(hostname, port);
+		if (node < 0)
+		{
+			testclientnextjoin = I_GetTime() + 3*TICRATE;
+			return;
+		}
+
+		freeclient->node = node;
+		freeclient->servernode = UINT8_MAX;
+		freeclient->playernum = -1;
+		ResetNode(node);
+		netbuffer->packettype = PT_CLIENTJOIN;
+		memset(&netbuffer->u.clientcfg, 0, sizeof(netbuffer->u.clientcfg));
+		netbuffer->u.clientcfg.modversion = MODVERSION;
+		strlcpy(netbuffer->u.clientcfg.application, SRB2APPLICATION,
+			sizeof(netbuffer->u.clientcfg.application));
+		netbuffer->u.clientcfg.localplayers = 1;
+		netbuffer->u.clientcfg.mode = 0;
+		netbuffer->u.clientcfg.names[1][0] = '\0';
+		snprintf(netbuffer->u.clientcfg.names[0],
+			sizeof(netbuffer->u.clientcfg.names[0]), "Player %d",
+			index + 2 + (splitscreen ? 1 : 0));
+		if (!HSendPacket(node, true, 0, sizeof(clientconfig_pak)))
+			RemoveTestClient(freeclient, true);
+		else
+			testclientnextjoin = I_GetTime() + 2*TICRATE;
+	}
+}
+
+void CL_SendTestClientKeepAlives(void)
+{
+	InitTestClients();
+	for (INT32 i = 0; i < MAXPLAYERS; i++)
+		if (testclients[i].node >= 0 && netnodes[(UINT8)testclients[i].node].ingame)
+		{
+			netbuffer->packettype = PT_BASICKEEPALIVE;
+			HSendPacket(testclients[i].node, false, 0, 0);
+		}
+}
+
+void CL_SendTestClientCommands(void)
+{
+	InitTestClients();
+	for (INT32 i = 0; i < MAXPLAYERS; i++)
+		if (testclients[i].node >= 0 && netnodes[(UINT8)testclients[i].node].ingame)
+		{
+			netbuffer->packettype = PT_CLIENTCMD;
+			netbuffer->u.clientpak.resendfrom = (UINT8)(neededtic & UINT8_MAX);
+			netbuffer->u.clientpak.client_tic = (UINT8)(gametic & UINT8_MAX);
+			memset(&netbuffer->u.clientpak.cmd, 0, sizeof(netbuffer->u.clientpak.cmd));
+			netbuffer->u.clientpak.consistancy = SHORT(consistancy[gametic%BACKUPTICS]);
+			HSendPacket(testclients[i].node, false, 0, sizeof(clientcmd_pak));
+		}
+}
+
 static const char *GetChatColorFromVideoFlag(INT32 flag)
 {
 	switch (flag) {
@@ -942,7 +1187,8 @@ boolean CL_StartSplitConnection(void)
 
 void CL_ResetSplitConnection(void)
 {
-	CL_ResetSplitFileTransfer();
+	if (splitservernode >= 0)
+		CL_ResetDiscardedGameState(splitservernode);
 	localtextcmd2[0] = 0;
 	splitservernode = -1;
 	splitmynode = UINT8_MAX;
@@ -1798,6 +2044,8 @@ static boolean CL_ServerConnectionTicker(const char *tmpsave, tic_t *oldtic, tic
 			if (client && splitscreen && cv_joinsplitscreen.value
 				&& splitservernode < 0)
 				CL_AddSplitscreenPlayer();
+			if (client)
+				CL_TestClientsTicker();
 			break;
 		case CL_CONFIRMCONNECT: //logic is handled by M_ConfirmConnect
 		default:
@@ -2160,6 +2408,15 @@ void PT_MoreFilesNeeded(SINT8 node)
 // Negative response of client join request
 void PT_ServerRefuse(SINT8 node)
 {
+	if (CL_IsTestClientNode(node))
+	{
+		CONS_Alert(CONS_WARNING, M_GetText("Test client could not join: %s\n"),
+			netbuffer->u.serverrefuse.reason);
+		CL_TestClientConnectionLost(node);
+		testclientnextjoin = I_GetTime() + 30*TICRATE;
+		return;
+	}
+
 	if (node == splitservernode)
 	{
 		CONS_Alert(CONS_WARNING, M_GetText("Second player could not join: %s\n"),
@@ -2209,6 +2466,18 @@ void PT_ServerRefuse(SINT8 node)
 // Positive response of client join request
 void PT_ServerCFG(SINT8 node)
 {
+	if (CL_IsTestClientNode(node))
+	{
+		if (server || !client || cl_mode != CL_CONNECTED
+			|| netbuffer->u.servercfg.serverplayer != serverplayer)
+		{
+			CL_TestClientConnectionLost(node);
+			return;
+		}
+		CL_TestClientNodeAccepted(node, netbuffer->u.servercfg.clientnode);
+		return;
+	}
+
 	if (node == splitservernode)
 	{
 		if (server || !client || cl_mode != CL_CONNECTED

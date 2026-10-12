@@ -304,7 +304,7 @@ void PT_ReceivedGamestate(SINT8 node)
 
 void PT_WillResendGamestate(SINT8 node)
 {
-	if (node == splitservernode)
+	if (node == splitservernode || CL_IsTestClientNode(node))
 	{
 		netbuffer->packettype = PT_CANRECEIVEGAMESTATE;
 		HSendPacket(node, true, 0, 0);

@@ -50,6 +50,17 @@ extern tic_t firstconnectattempttime;
 extern UINT8 mynode; // my address pointofview server
 extern SINT8 splitservernode;
 extern UINT8 splitmynode;
+boolean CL_IsTestClientNode(INT32 node);
+boolean CL_IsTestClientPlayer(INT32 playernum);
+void CL_MarkTestClientPlayer(INT32 servernode, INT32 playernum);
+void CL_ClearTestClientPlayer(INT32 playernum);
+void CL_TestClientsChanged(void);
+void CL_TestClientsTicker(void);
+void CL_ResetTestClients(void);
+void CL_TestClientNodeAccepted(SINT8 node, UINT8 servernode);
+void CL_TestClientConnectionLost(SINT8 node);
+void CL_SendTestClientKeepAlives(void);
+void CL_SendTestClientCommands(void);
 
 void CL_QueryServerList(msg_server_t *list);
 void CL_UpdateServerList(boolean internetsearch, INT32 room);

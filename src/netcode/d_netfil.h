@@ -147,7 +147,7 @@ boolean SendingFile(INT32 node);
 
 void FileReceiveTicker(void);
 void PT_FileFragment(SINT8 node, INT32 netconsole);
-void CL_ResetSplitFileTransfer(void);
+void CL_ResetDiscardedGameState(INT32 node);
 
 UINT8 CL_CheckDownloadable(boolean direct);
 boolean CL_SendFileRequest(void);

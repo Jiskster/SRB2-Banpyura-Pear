@@ -325,6 +325,12 @@ void Net_ConnectionTimeout(INT32 node)
 		CONS_Alert(CONS_WARNING, M_GetText("The second player's server connection timed out.\n"));
 		return;
 	}
+	if (client && CL_IsTestClientNode(node))
+	{
+		CL_TestClientConnectionLost((SINT8)node);
+		CONS_Alert(CONS_WARNING, M_GetText("A test client's server connection timed out.\n"));
+		return;
+	}
 
 	if (server)
 	{
@@ -453,6 +459,12 @@ void Net_CloseConnection(INT32 node)
 	if (node < 0 || node >= MAXNETNODES) // prevent invalid nodes from crashing the game
 	{
 		DEBFILE(va(M_GetText("Net_CloseConnection: invalid node %d detected!\n"), node));
+		return;
+	}
+
+	if (client && CL_IsTestClientNode(node))
+	{
+		CL_TestClientConnectionLost((SINT8)node);
 		return;
 	}
 

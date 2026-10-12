@@ -167,8 +167,7 @@ static SOCKET_TYPE mysockets[MAXNETNODES+1] = {ERRSOCKET};
 static size_t mysocketses = 0;
 static int myfamily[MAXNETNODES+1] = {0};
 static SOCKET_TYPE nodesocket[MAXNETNODES+1] = {ERRSOCKET};
-static SOCKET_TYPE splitsocket = ERRSOCKET;
-static SINT8 splitnode = -1;
+static boolean independentnode[MAXNETNODES+1];
 static mysockaddr_t clientaddress[MAXNETNODES+1];
 static mysockaddr_t broadcastaddress[MAXNETNODES+1];
 static size_t broadcastaddresses = 0;
@@ -517,7 +516,8 @@ static void cleanupnodes(void)
 
 	// Why can't I start at zero?
 	for (SINT8 j = 1; j < MAXNETNODES; j++)
-		if (!(netnodes[j].ingame || SendingFile(j)))
+		if (!(netnodes[j].ingame || SendingFile(j)
+			|| nodesocket[j] != (SOCKET_TYPE)ERRSOCKET))
 			nodeconnected[j] = false;
 }
 
@@ -588,7 +588,7 @@ void Command_Numnodes(void)
 static boolean SOCK_Get(void)
 {
 	size_t i;
-	size_t socketcount = mysocketses + (splitsocket != (SOCKET_TYPE)ERRSOCKET);
+	size_t socketcount = mysocketses + MAXNETNODES - 1;
 	int j;
 	ssize_t c;
 	mysockaddr_t fromaddress;
@@ -597,7 +597,17 @@ static boolean SOCK_Get(void)
 
 	for (size_t n = 0; n < socketcount; n++)
 	{
-		socket = (n < mysocketses) ? mysockets[n] : splitsocket;
+		if (n < mysocketses)
+			socket = mysockets[n];
+		else
+		{
+			const INT32 node = (INT32)(n - mysocketses) + 1;
+			if (!independentnode[node])
+				continue;
+			socket = nodesocket[node];
+			if (socket == (SOCKET_TYPE)ERRSOCKET)
+				continue;
+		}
 		fromlen = (socklen_t)sizeof(fromaddress);
 		c = recvfrom(socket, (char *)&doomcom->data, MAXPACKETLENGTH, 0,
 			(void *)&fromaddress, &fromlen);
@@ -748,11 +758,11 @@ static void SOCK_FreeNodenum(INT32 numnode)
 	DEBFILE(va("Free node %d (%s)\n", numnode, SOCK_GetNodeAddress(numnode)));
 
 	nodeconnected[numnode] = false;
-	if (numnode == splitnode && splitsocket != (SOCKET_TYPE)ERRSOCKET)
+	boolean isindependent = independentnode[numnode];
+	independentnode[numnode] = false;
+	if (isindependent && nodesocket[numnode] != (SOCKET_TYPE)ERRSOCKET)
 	{
-		close(splitsocket);
-		splitsocket = (SOCKET_TYPE)ERRSOCKET;
-		splitnode = -1;
+		close(nodesocket[numnode]);
 	}
 	nodesocket[numnode] = ERRSOCKET;
 
@@ -1214,10 +1224,13 @@ boolean I_InitTcpDriver(void)
 
 static void SOCK_CloseSocket(void)
 {
-	if (splitsocket != (SOCKET_TYPE)ERRSOCKET)
-		close(splitsocket);
-	splitsocket = (SOCKET_TYPE)ERRSOCKET;
-	splitnode = -1;
+	for (size_t n = 1; n < MAXNETNODES; n++)
+	{
+		if (independentnode[n] && nodesocket[n] != (SOCKET_TYPE)ERRSOCKET)
+			close(nodesocket[n]);
+		nodesocket[n] = ERRSOCKET;
+		independentnode[n] = false;
+	}
 
 	for (size_t i=0; i < mysocketses; i++)
 	{
@@ -1301,8 +1314,6 @@ static SINT8 SOCK_NetMakeSplitNodewPort(const char *address, const char *port)
 	int gaie;
 	size_t i;
 
-	if (splitsocket != (SOCKET_TYPE)ERRSOCKET)
-		return -1;
 	if (!port || !port[0])
 		port = DEFAULTPORT;
 
@@ -1353,9 +1364,9 @@ static SINT8 SOCK_NetMakeSplitNodewPort(const char *address, const char *port)
 	}
 #endif
 
-	splitsocket = UDP_Bind(localaddress.any.sa_family, &localaddress.any,
+	SOCKET_TYPE extrasocket = UDP_Bind(localaddress.any.sa_family, &localaddress.any,
 		(socklen_t)runp->ai_addrlen);
-	if (splitsocket == (SOCKET_TYPE)ERRSOCKET)
+	if (extrasocket == (SOCKET_TYPE)ERRSOCKET)
 	{
 		nodeconnected[newnode] = false;
 		I_freeaddrinfo(ai);
@@ -1363,8 +1374,8 @@ static SINT8 SOCK_NetMakeSplitNodewPort(const char *address, const char *port)
 	}
 
 	memcpy(&clientaddress[newnode], runp->ai_addr, runp->ai_addrlen);
-	nodesocket[newnode] = splitsocket;
-	splitnode = newnode;
+	nodesocket[newnode] = extrasocket;
+	independentnode[newnode] = true;
 	I_freeaddrinfo(ai);
 	return newnode;
 }

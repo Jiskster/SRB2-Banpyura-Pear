@@ -154,6 +154,7 @@ void CL_Reset(void)
 		Net_CloseConnection(splitservernode);
 		CL_ResetSplitConnection();
 	}
+	CL_ResetTestClients();
 
 	if (servernode > 0 && servernode < MAXNETNODES)
 	{
@@ -255,6 +256,9 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 	newplayer->lastinputtime = 0;
 
 	READSTRINGN(*p, player_names[newplayernum], MAXPLAYERNAME);
+	CL_MarkTestClientPlayer(node, newplayernum);
+	if (CL_IsTestClientPlayer(newplayernum) && newplayer->mo)
+		newplayer->mo->flags2 |= MF2_DONTDRAW;
 
 	// the server is creating my player
 	if (node == mynode || node == splitmynode)
@@ -613,6 +617,7 @@ void CL_RemovePlayer(INT32 playernum, kickreason_t reason)
 	if (!playeringame[playernum])
 		return;
 
+	CL_ClearTestClientPlayer(playernum);
 	if (server)
 		UnlinkPlayerFromNode(playernum);
 
@@ -705,6 +710,7 @@ void D_QuitNetGame(void)
 
 	if (splitservernode >= 0)
 		CL_ResetSplitConnection();
+	CL_ResetTestClients();
 
 	D_CloseConnection();
 	ClearAdminPlayers();
@@ -902,6 +908,12 @@ void SV_StopServer(void)
   */
 static void PT_ServerShutdown(SINT8 node)
 {
+	if (CL_IsTestClientNode(node))
+	{
+		CL_TestClientConnectionLost(node);
+		return;
+	}
+
 	if (node == splitservernode)
 	{
 		Net_CloseConnection(node);
@@ -1044,7 +1056,7 @@ static void PT_HasLuaFile(SINT8 node)
 
 static void PT_SendingLuaFile(SINT8 node)
 {
-	if (node == splitservernode)
+	if (node == splitservernode || CL_IsTestClientNode(node))
 	{
 		netbuffer->packettype = PT_HASLUAFILE;
 		HSendPacket(node, true, 0, 0);
@@ -1136,6 +1148,9 @@ static inline void PingUpdate(void)
 
 static void PT_Ping(SINT8 node, INT32 netconsole)
 {
+	if (CL_IsTestClientNode(node))
+		return;
+
 	// Only accept PT_PING from the server.
 	if (node != servernode && !(splitscreen && node == splitservernode))
 	{
@@ -1181,6 +1196,7 @@ static void CL_SendClientKeepAlive(void)
 	netbuffer->packettype = PT_BASICKEEPALIVE;
 
 	HSendPacket(servernode, false, 0, 0);
+	CL_SendTestClientKeepAlives();
 }
 
 static void SV_SendServerKeepAlive(void)
@@ -1245,6 +1261,21 @@ static void HandlePacketFromAwayNode(SINT8 node)
 static void HandlePacketFromPlayer(SINT8 node)
 {
 	INT32 netconsole;
+
+	if (client && CL_IsTestClientNode(node))
+	{
+		switch (netbuffer->packettype)
+		{
+			case PT_SERVERTICS:          PT_ServerTics(node, -1); break;
+			case PT_PING:                PT_Ping(node, -1); break;
+			case PT_FILEFRAGMENT:        PT_FileFragment(node, -1); break;
+			case PT_WILLRESENDGAMESTATE: PT_WillResendGamestate(node); break;
+			case PT_SENDINGLUAFILE:      PT_SendingLuaFile(node); break;
+			case PT_SERVERSHUTDOWN:      PT_ServerShutdown(node); break;
+			default: break;
+		}
+		return;
+	}
 
 	if (dedicated && node == 0)
 		netconsole = 0;
@@ -1692,6 +1723,9 @@ void NetUpdate(void)
 	if (realtics <= 0) // nothing new to update
 		return;
 
+	if (client)
+		CL_TestClientsTicker();
+
 	if (realtics > 5)
 	{
 		if (server)
@@ -1727,6 +1761,7 @@ void NetUpdate(void)
 
 	if (client)
 	{
+		CL_TestClientsTicker();
 		// If the client just finished redownloading the game state, load it
 		if (cl_redownloadinggamestate && fileneeded[0].status == FS_FOUND)
 			CL_ReloadReceivedSavegame();

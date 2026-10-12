@@ -46,11 +46,11 @@ static IPaddress banned[MAXBANS];
 static UDPpacket mypacket;
 static UDPsocket mysocket = NULL;
 static SDLNet_SocketSet myset = NULL;
-static UDPsocket splitsocket = NULL;
-static SDLNet_SocketSet splitset = NULL;
-static UDPpacket splitpacket;
-static SINT8 splitnode = -1;
-static INT32 splitchannel = -1;
+static UDPsocket extrasockets[MAXNETNODES];
+static SDLNet_SocketSet extrasets[MAXNETNODES];
+static UDPpacket extrapackets[MAXNETNODES];
+static INT32 extrachannels[MAXNETNODES];
+static boolean nodeconnected[MAXNETNODES+1];
 
 static size_t numbans = 0;
 static boolean NET_bannednode[MAXNETNODES+1]; /// \note do we really need the +1?
@@ -85,8 +85,10 @@ static boolean NET_cmpaddr(IPaddress* a, IPaddress* b)
 
 static boolean NET_CanGet(void)
 {
-	if (splitset && SDLNet_CheckSockets(splitset, 0) > 0)
-		return true;
+	for (INT32 i = 1; i < MAXNETNODES; i++)
+		if (extrasockets[i] && extrasets[i]
+			&& SDLNet_CheckSockets(extrasets[i], 0) > 0)
+			return true;
 	return myset?(SDLNet_CheckSockets(myset,0)  == 1):false;
 }
 
@@ -94,14 +96,17 @@ static void NET_Get(void)
 {
 	INT32 mystatus;
 	INT32 newnode;
-	if (splitsocket && splitset && SDLNet_CheckSockets(splitset, 0) > 0)
+	for (INT32 i = 1; i < MAXNETNODES; i++)
 	{
-		splitpacket.len = MAXPACKETLENGTH;
-		mystatus = SDLNet_UDP_Recv(splitsocket, &splitpacket);
-		if (mystatus == 1 && splitpacket.channel != -1)
+		if (!extrasockets[i] || !extrasets[i]
+			|| SDLNet_CheckSockets(extrasets[i], 0) <= 0)
+			continue;
+		extrapackets[i].len = MAXPACKETLENGTH;
+		mystatus = SDLNet_UDP_Recv(extrasockets[i], &extrapackets[i]);
+		if (mystatus == 1 && extrapackets[i].channel != -1)
 		{
-			doomcom->remotenode = splitnode;
-			doomcom->datalength = splitpacket.len;
+			doomcom->remotenode = (INT16)i;
+			doomcom->datalength = extrapackets[i].len;
 			return;
 		}
 	}
@@ -126,6 +131,7 @@ static void NET_Get(void)
 		{
 			size_t i;
 			newnode++;
+			nodeconnected[newnode] = true;
 			M_Memcpy(&clientaddress[newnode], &mypacket.address, sizeof (IPaddress));
 			DEBFILE(va("New node detected: node:%d address:%s\n", newnode,
 					NET_GetNodeAddress(newnode)));
@@ -167,10 +173,13 @@ static void NET_Send(void)
 {
 	if (!doomcom->remotenode)
 		return;
-	if (doomcom->remotenode == splitnode && splitsocket)
+	if (doomcom->remotenode > 0 && doomcom->remotenode < MAXNETNODES
+		&& extrasockets[doomcom->remotenode])
 	{
-		splitpacket.len = doomcom->datalength;
-		if (SDLNet_UDP_Send(splitsocket, splitchannel, &splitpacket) == 0)
+		UDPpacket *packet = &extrapackets[doomcom->remotenode];
+		packet->len = doomcom->datalength;
+		if (SDLNet_UDP_Send(extrasockets[doomcom->remotenode],
+			extrachannels[doomcom->remotenode], packet) == 0)
 			I_OutputMsg("SDL_Net: %s", SDLNet_GetError());
 		return;
 	}
@@ -189,20 +198,19 @@ static void NET_FreeNodenum(INT32 numnode)
 
 	DEBFILE(va("Free node %d (%s)\n", numnode, NET_GetNodeAddress(numnode)));
 
-	if (numnode == splitnode)
+	if (numnode > 0 && numnode < MAXNETNODES && extrasockets[numnode])
 	{
-		if (splitset)
-			SDLNet_FreeSocketSet(splitset);
-		splitset = NULL;
-		if (splitsocket)
-			SDLNet_UDP_Close(splitsocket);
-		splitsocket = NULL;
-		splitchannel = -1;
-		splitnode = -1;
+		if (extrasets[numnode])
+			SDLNet_FreeSocketSet(extrasets[numnode]);
+		extrasets[numnode] = NULL;
+		SDLNet_UDP_Close(extrasockets[numnode]);
+		extrasockets[numnode] = NULL;
+		extrachannels[numnode] = -1;
 	}
 
 	SDLNet_UDP_Unbind(mysocket,numnode-1);
 
+	nodeconnected[numnode] = false;
 	memset(&clientaddress[numnode], 0, sizeof (IPaddress));
 }
 
@@ -268,14 +276,17 @@ static void I_InitSDLNetDriver(void)
 
 static void NET_CloseSocket(void)
 {
-	if (splitset)
-		SDLNet_FreeSocketSet(splitset);
-	splitset = NULL;
-	if (splitsocket)
-		SDLNet_UDP_Close(splitsocket);
-	splitsocket = NULL;
-	splitnode = -1;
-	splitchannel = -1;
+	for (INT32 i = 1; i < MAXNETNODES; i++)
+	{
+		if (extrasets[i])
+			SDLNet_FreeSocketSet(extrasets[i]);
+		extrasets[i] = NULL;
+		if (extrasockets[i])
+			SDLNet_UDP_Close(extrasockets[i]);
+		extrasockets[i] = NULL;
+		extrachannels[i] = -1;
+	}
+	memset(nodeconnected, 0, sizeof(nodeconnected));
 	if (mysocket)
 		SDLNet_UDP_Close(mysocket);
 	mysocket = NULL;
@@ -304,16 +315,20 @@ static SINT8 NET_NetMakeNodewPort(const char *hostname, const char *port)
 	}
 	newnode++;
 	M_Memcpy(&clientaddress[newnode],&hostnameIP,sizeof (IPaddress));
+	nodeconnected[newnode] = true;
 	return (SINT8)newnode;
 }
 
 static SINT8 NET_NetMakeSplitNodewPort(const char *hostname, const char *port)
 {
-	INT32 channel;
+	INT32 node;
 	IPaddress hostnameIP;
 	UINT16 portnum = sock_port;
+	UDPsocket extrasocket;
+	SDLNet_SocketSet extraset;
+	INT32 extrachannel;
 
-	if (splitnode != -1 || !mysocket || !hostname)
+	if (!mysocket || !hostname)
 		return -1;
 	if (port && port[0])
 		portnum = (UINT16)atoi(port);
@@ -323,49 +338,45 @@ static SINT8 NET_NetMakeSplitNodewPort(const char *hostname, const char *port)
 		return -1;
 	}
 
-	channel = SDLNet_UDP_Bind(mysocket, -1, &hostnameIP);
-	if (channel == -1)
+	for (node = 1; node < MAXNETNODES; node++)
+		if (!nodeconnected[node])
+			break;
+	if (node >= MAXNETNODES)
+		return -1;
+
+	extrasocket = SDLNet_UDP_Open(0);
+	if (!extrasocket)
 	{
 		I_OutputMsg("SDL_Net: %s", SDLNet_GetError());
 		return -1;
 	}
 
-	splitsocket = SDLNet_UDP_Open(0);
-	if (!splitsocket)
+	extrachannel = SDLNet_UDP_Bind(extrasocket, 0, &hostnameIP);
+	if (extrachannel == -1)
 	{
-		SDLNet_UDP_Unbind(mysocket, channel);
+		SDLNet_UDP_Close(extrasocket);
 		I_OutputMsg("SDL_Net: %s", SDLNet_GetError());
 		return -1;
 	}
 
-	splitchannel = SDLNet_UDP_Bind(splitsocket, 0, &hostnameIP);
-	if (splitchannel == -1)
+	extraset = SDLNet_AllocSocketSet(1);
+	if (!extraset || SDLNet_UDP_AddSocket(extraset, extrasocket) == -1)
 	{
-		SDLNet_UDP_Close(splitsocket);
-		splitsocket = NULL;
-		SDLNet_UDP_Unbind(mysocket, channel);
+		if (extraset)
+			SDLNet_FreeSocketSet(extraset);
+		SDLNet_UDP_Close(extrasocket);
 		I_OutputMsg("SDL_Net: %s", SDLNet_GetError());
 		return -1;
 	}
 
-	splitset = SDLNet_AllocSocketSet(1);
-	if (!splitset || SDLNet_UDP_AddSocket(splitset, splitsocket) == -1)
-	{
-		if (splitset)
-			SDLNet_FreeSocketSet(splitset);
-		splitset = NULL;
-		SDLNet_UDP_Close(splitsocket);
-		splitsocket = NULL;
-		SDLNet_UDP_Unbind(mysocket, channel);
-		I_OutputMsg("SDL_Net: %s", SDLNet_GetError());
-		return -1;
-	}
-
-	splitnode = (SINT8)(channel + 1);
-	clientaddress[(UINT8)splitnode] = hostnameIP;
-	splitpacket.data = doomcom->data;
-	splitpacket.maxlen = hardware_MAXPACKETLENGTH;
-	return splitnode;
+	nodeconnected[node] = true;
+	extrasockets[node] = extrasocket;
+	extrasets[node] = extraset;
+	extrachannels[node] = extrachannel;
+	clientaddress[node] = hostnameIP;
+	extrapackets[node].data = doomcom->data;
+	extrapackets[node].maxlen = hardware_MAXPACKETLENGTH;
+	return (SINT8)node;
 }
 
 

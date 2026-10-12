@@ -16,6 +16,7 @@
 #include "d_main.h"
 #include "d_player.h"
 #include "netcode/d_clisrv.h"
+#include "netcode/client_connection.h"
 #include "netcode/net_command.h"
 #include "f_finale.h"
 #include "p_setup.h"
@@ -30,6 +31,7 @@
 #include "s_sound.h"
 #include "g_game.h"
 #include "g_demo.h"
+#include "netcode/client_connection.h"
 #include "m_cheat.h"
 #include "m_misc.h"
 #include "m_menu.h"
@@ -2881,6 +2883,8 @@ void G_SpawnPlayer(INT32 playernum)
 		return;
 
 	P_SpawnPlayer(playernum);
+	if (CL_IsTestClientPlayer(playernum) && players[playernum].mo)
+		players[playernum].mo->flags2 |= MF2_DONTDRAW;
 	G_MovePlayerToSpawnOrStarpost(playernum);
 	LUA_HookPlayer(&players[playernum], HOOK(PlayerSpawn)); // Lua hook for player spawning :)
 }

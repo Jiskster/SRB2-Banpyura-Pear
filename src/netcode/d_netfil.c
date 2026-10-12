@@ -60,23 +60,26 @@
 
 // Prototypes
 static boolean AddFileToSendQueue(INT32 node, UINT8 fileid);
-static UINT8 *splitreceivedfragments;
-static UINT32 splitreceivedcount;
-static UINT32 splitfragmentcount;
-static UINT32 splitfilesize;
-static UINT16 splitfragmentsize;
-
-void CL_ResetSplitFileTransfer(void)
+typedef struct
 {
-	free(splitreceivedfragments);
-	splitreceivedfragments = NULL;
-	splitreceivedcount = 0;
-	splitfragmentcount = 0;
-	splitfilesize = 0;
-	splitfragmentsize = 0;
+	UINT8 *receivedfragments;
+	UINT32 receivedcount;
+	UINT32 fragmentcount;
+	UINT32 filesize;
+	UINT16 fragmentsize;
+} discardedgamefile_t;
+
+static discardedgamefile_t discardedgamefiles[MAXNETNODES];
+
+void CL_ResetDiscardedGameState(INT32 node)
+{
+	if (node < 0 || node >= MAXNETNODES)
+		return;
+	free(discardedgamefiles[node].receivedfragments);
+	memset(&discardedgamefiles[node], 0, sizeof(discardedgamefiles[node]));
 }
 
-static boolean ReceiveSplitSavegameFragment(SINT8 node)
+static boolean ReceiveDiscardedGameStateFragment(SINT8 node)
 {
 	filetx_pak *fragment = &netbuffer->u.filetxpak;
 	const UINT8 fileid = fragment->fileid;
@@ -87,14 +90,19 @@ static boolean ReceiveSplitSavegameFragment(SINT8 node)
 	UINT32 fragmentnum;
 	fileack_pak *ack;
 	fileacksegment_t *segment;
+	discardedgamefile_t *transfer;
 
-	if (node != splitservernode)
+	if (node != splitservernode && !CL_IsTestClientNode(node))
 		return false;
+	transfer = &discardedgamefiles[(UINT8)node];
 
 	if (doomcom->datalength < (INT32)(BASEPACKETSIZE + FILETXHEADER))
 	{
-		CONS_Alert(CONS_WARNING, M_GetText("Invalid split-screen game-state fragment received\n"));
-		Net_CloseConnection(node);
+		CONS_Alert(CONS_WARNING, M_GetText("Invalid additional-client game-state fragment received\n"));
+		if (CL_IsTestClientNode(node))
+			CL_TestClientConnectionLost(node);
+		else
+			Net_CloseConnection(node);
 		return true;
 	}
 	payloadsize = doomcom->datalength - BASEPACKETSIZE - FILETXHEADER;
@@ -104,24 +112,31 @@ static boolean ReceiveSplitSavegameFragment(SINT8 node)
 		|| position % fragmentsize || payloadsize > filesize - position
 		|| payloadsize != min((UINT32)fragmentsize, filesize - position))
 	{
-		CONS_Alert(CONS_WARNING, M_GetText("Invalid split-screen game-state fragment received\n"));
-		Net_CloseConnection(node);
+		CONS_Alert(CONS_WARNING, M_GetText("Invalid additional-client game-state fragment received\n"));
+		if (CL_IsTestClientNode(node))
+			CL_TestClientConnectionLost(node);
+		else
+			Net_CloseConnection(node);
 		return true;
 	}
 
-	if (!splitreceivedfragments)
+	if (!transfer->receivedfragments)
 	{
-		splitfilesize = filesize;
-		splitfragmentsize = fragmentsize;
-		splitfragmentcount = (filesize + fragmentsize - 1) / fragmentsize;
-		splitreceivedfragments = calloc(splitfragmentcount, sizeof(*splitreceivedfragments));
-		if (!splitreceivedfragments)
-			I_Error("No memory for split-screen game-state tracking\n");
+		transfer->filesize = filesize;
+		transfer->fragmentsize = fragmentsize;
+		transfer->fragmentcount = (filesize + fragmentsize - 1) / fragmentsize;
+		transfer->receivedfragments = calloc(transfer->fragmentcount,
+			sizeof(*transfer->receivedfragments));
+		if (!transfer->receivedfragments)
+			I_Error("No memory for additional-client game-state tracking\n");
 	}
-	else if (filesize != splitfilesize || fragmentsize != splitfragmentsize)
+	else if (filesize != transfer->filesize || fragmentsize != transfer->fragmentsize)
 	{
-		CONS_Alert(CONS_WARNING, M_GetText("Inconsistent split-screen game-state fragment received\n"));
-		Net_CloseConnection(node);
+		CONS_Alert(CONS_WARNING, M_GetText("Inconsistent additional-client game-state fragment received\n"));
+		if (CL_IsTestClientNode(node))
+			CL_TestClientConnectionLost(node);
+		else
+			Net_CloseConnection(node);
 		return true;
 	}
 
@@ -140,20 +155,20 @@ static boolean ReceiveSplitSavegameFragment(SINT8 node)
 	HSendPacket(node, false, 0, sizeof(*ack) + sizeof(*segment));
 	free(ack);
 
-	if (!splitreceivedfragments[fragmentnum])
+	if (!transfer->receivedfragments[fragmentnum])
 	{
-		splitreceivedfragments[fragmentnum] = true;
-		splitreceivedcount++;
+		transfer->receivedfragments[fragmentnum] = true;
+		transfer->receivedcount++;
 	}
 
-	if (splitreceivedcount == splitfragmentcount)
+	if (transfer->receivedcount == transfer->fragmentcount)
 	{
 		netbuffer->packettype = PT_FILERECEIVED;
 		netbuffer->u.filereceived = fileid;
 		HSendPacket(node, true, 0, 1);
 		netbuffer->packettype = PT_RECEIVEDGAMESTATE;
 		HSendPacket(node, true, 0, 0);
-		CL_ResetSplitFileTransfer();
+		CL_ResetDiscardedGameState(node);
 	}
 
 	return true;
@@ -1468,7 +1483,7 @@ static void OpenNewFileForDownload(fileneeded_t *file, const char *filename)
 
 void PT_FileFragment(SINT8 node, INT32 netconsole)
 {
-	if (ReceiveSplitSavegameFragment(node))
+	if (ReceiveDiscardedGameStateFragment(node))
 		return;
 
 	if (netnodes[node].ingame)
