@@ -14,6 +14,7 @@
 #include "d_clisrv.h"
 #include "net_command.h"
 #include "client_connection.h"
+#include "d_netcmd.h"
 #include "gamestate.h"
 #include "i_net.h"
 #include "../d_main.h"
@@ -233,6 +234,9 @@ void PT_ServerTics(SINT8 node, INT32 netconsole)
 	tic_t realend, realstart;
 	servertics_pak *packet = &netbuffer->u.serverpak;
 
+	if (node == splitservernode)
+		return;
+
 	if (!netnodes[node].ingame)
 	{
 		// Do not remove my own server (we have just get a out of order packet)
@@ -307,6 +311,8 @@ void CL_SendClientCmd(void)
 		netbuffer->packettype = (mis ? PT_NODEKEEPALIVEMIS : PT_NODEKEEPALIVE);
 		packetsize = sizeof (clientcmd_pak) - sizeof (ticcmd_t) - sizeof (INT16);
 		HSendPacket(servernode, false, 0, packetsize);
+		if (splitservernode >= 0 && netnodes[(UINT8)splitservernode].ingame)
+			HSendPacket(splitservernode, false, 0, packetsize);
 	}
 	else if (gamestate != GS_NULL && (addedtogame || dedicated))
 	{
@@ -352,8 +358,9 @@ void CL_SendClientCmd(void)
 		G_MoveTiccmd(&netbuffer->u.clientpak.cmd, &localcmds[lagDelay], 1);
 		netbuffer->u.clientpak.consistancy = SHORT(consistancy[gametic%BACKUPTICS]);
 
-		// Send a special packet with 2 cmd for splitscreen
-		if (splitscreen || botingame)
+		// A remote splitscreen player uses a second ordinary client connection.
+		if (botingame || (splitscreen && splitservernode < 0
+			&& !cv_joinsplitscreen.value))
 		{
 			netbuffer->packettype = (mis ? PT_CLIENT2MIS : PT_CLIENT2CMD);
 			packetsize = sizeof (client2cmd_pak);
@@ -361,6 +368,17 @@ void CL_SendClientCmd(void)
 		}
 
 		HSendPacket(servernode, false, 0, packetsize);
+
+		if (splitscreen && splitservernode >= 0 && splitmynode != UINT8_MAX
+			&& netnodes[(UINT8)splitservernode].ingame)
+		{
+			netbuffer->packettype = (mis ? PT_CLIENTMIS : PT_CLIENTCMD);
+			netbuffer->u.clientpak.resendfrom = (UINT8)(neededtic & UINT8_MAX);
+			netbuffer->u.clientpak.client_tic = (UINT8)(gametic & UINT8_MAX);
+			G_MoveTiccmd(&netbuffer->u.clientpak.cmd, &localcmds2[lagDelay], 1);
+			netbuffer->u.clientpak.consistancy = SHORT(consistancy[gametic%BACKUPTICS]);
+			HSendPacket(splitservernode, false, 0, sizeof(clientcmd_pak));
+		}
 	}
 
 	if (cl_mode == CL_CONNECTED || dedicated)

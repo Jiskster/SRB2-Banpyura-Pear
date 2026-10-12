@@ -149,6 +149,12 @@ void CL_Reset(void)
 	// reset client/server code
 	DEBFILE(va("\n-=-=-=-=-=-=-= Client reset =-=-=-=-=-=-=-\n\n"));
 
+	if (splitservernode >= 0)
+	{
+		Net_CloseConnection(splitservernode);
+		CL_ResetSplitConnection();
+	}
+
 	if (servernode > 0 && servernode < MAXNETNODES)
 	{
 		netnodes[(UINT8)servernode].ingame = false;
@@ -251,11 +257,18 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 	READSTRINGN(*p, player_names[newplayernum], MAXPLAYERNAME);
 
 	// the server is creating my player
-	if (node == mynode)
+	if (node == mynode || node == splitmynode)
 	{
-		playernode[newplayernum] = 0; // for information only
-		if (!splitscreenplayer)
+		if (node == splitmynode)
 		{
+			playernode[newplayernum] = 0; // for information only
+			secondarydisplayplayer = newplayernum;
+			ticcmd_oldangleturn[1] = newplayer->oldrelangleturn;
+			DEBFILE("spawning remote splitscreen player\n");
+		}
+		else if (!splitscreenplayer)
+		{
+			playernode[newplayernum] = 0; // for information only
 			consoleplayer = newplayernum;
 			displayplayer = newplayernum;
 			secondarydisplayplayer = newplayernum;
@@ -264,6 +277,7 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 		}
 		else
 		{
+			playernode[newplayernum] = 0; // for information only
 			secondarydisplayplayer = newplayernum;
 			DEBFILE("spawning my brother\n");
 			if (botingame)
@@ -680,9 +694,17 @@ void D_QuitNetGame(void)
 	}
 	else if (servernode > 0 && servernode < MAXNETNODES && netnodes[(UINT8)servernode].ingame)
 	{
+		if (splitservernode >= 0 && netnodes[(UINT8)splitservernode].ingame)
+		{
+			netbuffer->packettype = PT_CLIENTQUIT;
+			HSendPacket(splitservernode, true, 0, 0);
+		}
 		netbuffer->packettype = PT_CLIENTQUIT;
 		HSendPacket(servernode, true, 0, 0);
 	}
+
+	if (splitservernode >= 0)
+		CL_ResetSplitConnection();
 
 	D_CloseConnection();
 	ClearAdminPlayers();
@@ -711,13 +733,31 @@ void CL_HandleTimeout(void)
 void CL_AddSplitscreenPlayer(void)
 {
 	if (cl_mode == CL_CONNECTED)
-		CL_SendJoin();
+	{
+		if (!CL_StartSplitConnection())
+		{
+			splitscreen = false;
+			secondarydisplayplayer = consoleplayer;
+			R_ExecuteSetViewSize();
+		}
+	}
 }
 
 void CL_RemoveSplitscreenPlayer(void)
 {
 	if (cl_mode != CL_CONNECTED)
 		return;
+
+	if (client && splitservernode >= 0)
+	{
+		INT32 node = splitservernode;
+		netbuffer->packettype = PT_CLIENTQUIT;
+		HSendPacket(node, true, 0, 0);
+		Net_CloseConnection(node);
+		CL_ResetSplitConnection();
+		secondarydisplayplayer = consoleplayer;
+		return;
+	}
 
 	SendKick(secondarydisplayplayer, KICK_MSG_PLAYER_QUIT);
 }
@@ -862,6 +902,16 @@ void SV_StopServer(void)
   */
 static void PT_ServerShutdown(SINT8 node)
 {
+	if (node == splitservernode)
+	{
+		Net_CloseConnection(node);
+		CL_ResetSplitConnection();
+		splitscreen = false;
+		secondarydisplayplayer = consoleplayer;
+		R_ExecuteSetViewSize();
+		return;
+	}
+
 	if (node != servernode || server || cl_mode == CL_SEARCHING)
 		return;
 
@@ -994,7 +1044,12 @@ static void PT_HasLuaFile(SINT8 node)
 
 static void PT_SendingLuaFile(SINT8 node)
 {
-	(void)node;
+	if (node == splitservernode)
+	{
+		netbuffer->packettype = PT_HASLUAFILE;
+		HSendPacket(node, true, 0, 0);
+		return;
+	}
 
 	if (client)
 		CL_PrepareDownloadLuaFile();
@@ -1082,7 +1137,7 @@ static inline void PingUpdate(void)
 static void PT_Ping(SINT8 node, INT32 netconsole)
 {
 	// Only accept PT_PING from the server.
-	if (node != servernode)
+	if (node != servernode && !(splitscreen && node == splitservernode))
 	{
 		CONS_Alert(CONS_WARNING, M_GetText("%s received from non-host %d\n"), "PT_PING", node);
 		if (server)

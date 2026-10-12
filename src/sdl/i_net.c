@@ -46,6 +46,11 @@ static IPaddress banned[MAXBANS];
 static UDPpacket mypacket;
 static UDPsocket mysocket = NULL;
 static SDLNet_SocketSet myset = NULL;
+static UDPsocket splitsocket = NULL;
+static SDLNet_SocketSet splitset = NULL;
+static UDPpacket splitpacket;
+static SINT8 splitnode = -1;
+static INT32 splitchannel = -1;
 
 static size_t numbans = 0;
 static boolean NET_bannednode[MAXNETNODES+1]; /// \note do we really need the +1?
@@ -80,6 +85,8 @@ static boolean NET_cmpaddr(IPaddress* a, IPaddress* b)
 
 static boolean NET_CanGet(void)
 {
+	if (splitset && SDLNet_CheckSockets(splitset, 0) > 0)
+		return true;
 	return myset?(SDLNet_CheckSockets(myset,0)  == 1):false;
 }
 
@@ -87,6 +94,18 @@ static void NET_Get(void)
 {
 	INT32 mystatus;
 	INT32 newnode;
+	if (splitsocket && splitset && SDLNet_CheckSockets(splitset, 0) > 0)
+	{
+		splitpacket.len = MAXPACKETLENGTH;
+		mystatus = SDLNet_UDP_Recv(splitsocket, &splitpacket);
+		if (mystatus == 1 && splitpacket.channel != -1)
+		{
+			doomcom->remotenode = splitnode;
+			doomcom->datalength = splitpacket.len;
+			return;
+		}
+	}
+
 	mypacket.len = MAXPACKETLENGTH;
 	if (!NET_CanGet())
 	{
@@ -148,6 +167,13 @@ static void NET_Send(void)
 {
 	if (!doomcom->remotenode)
 		return;
+	if (doomcom->remotenode == splitnode && splitsocket)
+	{
+		splitpacket.len = doomcom->datalength;
+		if (SDLNet_UDP_Send(splitsocket, splitchannel, &splitpacket) == 0)
+			I_OutputMsg("SDL_Net: %s", SDLNet_GetError());
+		return;
+	}
 	mypacket.len = doomcom->datalength;
 	if (SDLNet_UDP_Send(mysocket,doomcom->remotenode-1,&mypacket) == 0)
 	{
@@ -162,6 +188,18 @@ static void NET_FreeNodenum(INT32 numnode)
 		return;
 
 	DEBFILE(va("Free node %d (%s)\n", numnode, NET_GetNodeAddress(numnode)));
+
+	if (numnode == splitnode)
+	{
+		if (splitset)
+			SDLNet_FreeSocketSet(splitset);
+		splitset = NULL;
+		if (splitsocket)
+			SDLNet_UDP_Close(splitsocket);
+		splitsocket = NULL;
+		splitchannel = -1;
+		splitnode = -1;
+	}
 
 	SDLNet_UDP_Unbind(mysocket,numnode-1);
 
@@ -230,6 +268,14 @@ static void I_InitSDLNetDriver(void)
 
 static void NET_CloseSocket(void)
 {
+	if (splitset)
+		SDLNet_FreeSocketSet(splitset);
+	splitset = NULL;
+	if (splitsocket)
+		SDLNet_UDP_Close(splitsocket);
+	splitsocket = NULL;
+	splitnode = -1;
+	splitchannel = -1;
 	if (mysocket)
 		SDLNet_UDP_Close(mysocket);
 	mysocket = NULL;
@@ -261,6 +307,67 @@ static SINT8 NET_NetMakeNodewPort(const char *hostname, const char *port)
 	return (SINT8)newnode;
 }
 
+static SINT8 NET_NetMakeSplitNodewPort(const char *hostname, const char *port)
+{
+	INT32 channel;
+	IPaddress hostnameIP;
+	UINT16 portnum = sock_port;
+
+	if (splitnode != -1 || !mysocket || !hostname)
+		return -1;
+	if (port && port[0])
+		portnum = (UINT16)atoi(port);
+	if (SDLNet_ResolveHost(&hostnameIP, hostname, portnum) == -1)
+	{
+		I_OutputMsg("SDL_Net: %s", SDLNet_GetError());
+		return -1;
+	}
+
+	channel = SDLNet_UDP_Bind(mysocket, -1, &hostnameIP);
+	if (channel == -1)
+	{
+		I_OutputMsg("SDL_Net: %s", SDLNet_GetError());
+		return -1;
+	}
+
+	splitsocket = SDLNet_UDP_Open(0);
+	if (!splitsocket)
+	{
+		SDLNet_UDP_Unbind(mysocket, channel);
+		I_OutputMsg("SDL_Net: %s", SDLNet_GetError());
+		return -1;
+	}
+
+	splitchannel = SDLNet_UDP_Bind(splitsocket, 0, &hostnameIP);
+	if (splitchannel == -1)
+	{
+		SDLNet_UDP_Close(splitsocket);
+		splitsocket = NULL;
+		SDLNet_UDP_Unbind(mysocket, channel);
+		I_OutputMsg("SDL_Net: %s", SDLNet_GetError());
+		return -1;
+	}
+
+	splitset = SDLNet_AllocSocketSet(1);
+	if (!splitset || SDLNet_UDP_AddSocket(splitset, splitsocket) == -1)
+	{
+		if (splitset)
+			SDLNet_FreeSocketSet(splitset);
+		splitset = NULL;
+		SDLNet_UDP_Close(splitsocket);
+		splitsocket = NULL;
+		SDLNet_UDP_Unbind(mysocket, channel);
+		I_OutputMsg("SDL_Net: %s", SDLNet_GetError());
+		return -1;
+	}
+
+	splitnode = (SINT8)(channel + 1);
+	clientaddress[(UINT8)splitnode] = hostnameIP;
+	splitpacket.data = doomcom->data;
+	splitpacket.maxlen = hardware_MAXPACKETLENGTH;
+	return splitnode;
+}
+
 
 static boolean NET_OpenSocket(void)
 {
@@ -273,6 +380,7 @@ static boolean NET_OpenSocket(void)
 	I_NetCloseSocket = NET_CloseSocket;
 	I_NetFreeNodenum = NET_FreeNodenum;
 	I_NetMakeNodewPort = NET_NetMakeNodewPort;
+	I_NetMakeSplitNodewPort = NET_NetMakeSplitNodewPort;
 
 	//I_NetCanSend = NET_CanSend;
 

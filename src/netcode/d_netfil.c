@@ -46,6 +46,7 @@
 #include "d_net.h"
 #include "../w_wad.h"
 #include "d_netfil.h"
+#include "client_connection.h"
 #include "net_command.h"
 #include "../z_zone.h"
 #include "../byteptr.h"
@@ -59,6 +60,104 @@
 
 // Prototypes
 static boolean AddFileToSendQueue(INT32 node, UINT8 fileid);
+static UINT8 *splitreceivedfragments;
+static UINT32 splitreceivedcount;
+static UINT32 splitfragmentcount;
+static UINT32 splitfilesize;
+static UINT16 splitfragmentsize;
+
+void CL_ResetSplitFileTransfer(void)
+{
+	free(splitreceivedfragments);
+	splitreceivedfragments = NULL;
+	splitreceivedcount = 0;
+	splitfragmentcount = 0;
+	splitfilesize = 0;
+	splitfragmentsize = 0;
+}
+
+static boolean ReceiveSplitSavegameFragment(SINT8 node)
+{
+	filetx_pak *fragment = &netbuffer->u.filetxpak;
+	const UINT8 fileid = fragment->fileid;
+	const UINT32 filesize = LONG(fragment->filesize);
+	const UINT32 position = LONG(fragment->position);
+	const UINT16 fragmentsize = SHORT(fragment->size);
+	UINT32 payloadsize;
+	UINT32 fragmentnum;
+	fileack_pak *ack;
+	fileacksegment_t *segment;
+
+	if (node != splitservernode)
+		return false;
+
+	if (doomcom->datalength < (INT32)(BASEPACKETSIZE + FILETXHEADER))
+	{
+		CONS_Alert(CONS_WARNING, M_GetText("Invalid split-screen game-state fragment received\n"));
+		Net_CloseConnection(node);
+		return true;
+	}
+	payloadsize = doomcom->datalength - BASEPACKETSIZE - FILETXHEADER;
+	if (server || fragment->fileid != 0 || !filesize
+		|| filesize > 768 * 1024 || !fragmentsize || !payloadsize
+		|| payloadsize > fragmentsize || position >= filesize
+		|| position % fragmentsize || payloadsize > filesize - position
+		|| payloadsize != min((UINT32)fragmentsize, filesize - position))
+	{
+		CONS_Alert(CONS_WARNING, M_GetText("Invalid split-screen game-state fragment received\n"));
+		Net_CloseConnection(node);
+		return true;
+	}
+
+	if (!splitreceivedfragments)
+	{
+		splitfilesize = filesize;
+		splitfragmentsize = fragmentsize;
+		splitfragmentcount = (filesize + fragmentsize - 1) / fragmentsize;
+		splitreceivedfragments = calloc(splitfragmentcount, sizeof(*splitreceivedfragments));
+		if (!splitreceivedfragments)
+			I_Error("No memory for split-screen game-state tracking\n");
+	}
+	else if (filesize != splitfilesize || fragmentsize != splitfragmentsize)
+	{
+		CONS_Alert(CONS_WARNING, M_GetText("Inconsistent split-screen game-state fragment received\n"));
+		Net_CloseConnection(node);
+		return true;
+	}
+
+	fragmentnum = position / fragmentsize;
+	ack = calloc(1, sizeof(*ack) + sizeof(*segment));
+	if (!ack)
+		I_Error("No memory for split-screen file acknowledgement\n");
+	ack->fileid = fileid;
+	ack->iteration = fragment->iteration;
+	ack->numsegments = 1;
+	segment = (fileacksegment_t *)ack->segments;
+	segment->start = LONG(fragmentnum);
+	segment->acks = LONG(1);
+	netbuffer->packettype = PT_FILEACK;
+	M_Memcpy(&netbuffer->u.fileack, ack, sizeof(*ack) + sizeof(*segment));
+	HSendPacket(node, false, 0, sizeof(*ack) + sizeof(*segment));
+	free(ack);
+
+	if (!splitreceivedfragments[fragmentnum])
+	{
+		splitreceivedfragments[fragmentnum] = true;
+		splitreceivedcount++;
+	}
+
+	if (splitreceivedcount == splitfragmentcount)
+	{
+		netbuffer->packettype = PT_FILERECEIVED;
+		netbuffer->u.filereceived = fileid;
+		HSendPacket(node, true, 0, 1);
+		netbuffer->packettype = PT_RECEIVEDGAMESTATE;
+		HSendPacket(node, true, 0, 0);
+		CL_ResetSplitFileTransfer();
+	}
+
+	return true;
+}
 
 // Sender structure
 typedef struct filetx_s
@@ -1369,6 +1468,9 @@ static void OpenNewFileForDownload(fileneeded_t *file, const char *filename)
 
 void PT_FileFragment(SINT8 node, INT32 netconsole)
 {
+	if (ReceiveSplitSavegameFragment(node))
+		return;
+
 	if (netnodes[node].ingame)
 	{
 		// Only accept PT_FILEFRAGMENT from the server.

@@ -35,6 +35,7 @@
 #include "../p_spec.h"
 #include "../m_cheat.h"
 #include "d_clisrv.h"
+#include "client_connection.h"
 #include "server_connection.h"
 #include "net_command.h"
 #include "d_net.h"
@@ -244,6 +245,7 @@ consvar_t cv_allowseenames = CVAR_INIT ("allowseenames", "Yes", CV_SAVE|CV_NETVA
 // names
 consvar_t cv_playername = CVAR_INIT ("name", "Sonic", CV_SAVE|CV_CALL|CV_NOINIT, NULL, Name_OnChange);
 consvar_t cv_playername2 = CVAR_INIT ("name2", "Tails", CV_SAVE|CV_CALL|CV_NOINIT, NULL, Name2_OnChange);
+consvar_t cv_joinsplitscreen = CVAR_INIT ("joinsplitscreen", "Off", CV_SAVE, CV_OnOff, NULL);
 // player colors
 UINT16 lastgoodcolor = SKINCOLOR_BLUE, lastgoodcolor2 = SKINCOLOR_BLUE;
 consvar_t cv_playercolor = CVAR_INIT ("color", "Blue", CV_CALL|CV_NOINIT|CV_ALLOWLUA, Color_cons_t, Color_OnChange);
@@ -759,6 +761,7 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_playername2);
 	CV_RegisterVar(&cv_playercolor2);
 	CV_RegisterVar(&cv_skin2);
+	CV_RegisterVar(&cv_joinsplitscreen);
 	// saved versions of the above six
 	CV_RegisterVar(&cv_defaultplayercolor);
 	CV_RegisterVar(&cv_defaultskin);
@@ -1418,7 +1421,7 @@ static void SendNameAndColor2(void)
 	players[secondplaya].availabilities = R_GetSkinAvailabilities();
 
 	// We'll handle it later if we're not playing.
-	if (!Playing())
+	if (!Playing() && splitservernode < 0)
 		return;
 
 	if (botingame)
@@ -1442,7 +1445,23 @@ static void SendNameAndColor2(void)
 		return;
 	}
 
-	// Don't actually send anything because splitscreen isn't actually allowed in netgames anyway!
+	if (splitservernode >= 0)
+	{
+		UINT8 buf[MAXTEXTCMD];
+		UINT8 *p = buf;
+		INT32 skin = R_SkinAvailable(cv_skin2.string);
+
+		if (skin < 0 || !R_SkinUsable(secondplaya, skin))
+			skin = GetPlayerDefaultSkin(secondplaya);
+		CV_StealthSet(&cv_skin2, skins[skin]->name);
+		cv_skin2.value = skin;
+		CleanupPlayerName(secondplaya, cv_playername2.zstring);
+		WRITESTRINGN(p, cv_playername2.zstring, MAXPLAYERNAME);
+		WRITEUINT32(p, (UINT32)players[secondplaya].availabilities);
+		WRITEUINT16(p, (UINT16)cv_playercolor2.value);
+		WRITEUINT8(p, (UINT8)skin);
+		SendNetXCmd2(XD_NAMEANDCOLOR, buf, p - buf);
+	}
 }
 
 static void Got_NameAndColor(UINT8 **cp, INT32 playernum)
@@ -1591,7 +1610,7 @@ void D_SendPlayerConfig(void)
 	if (splitscreen || botingame)
 		SendNameAndColor2();
 	SendWeaponPref();
-	if (splitscreen)
+	if (splitscreen && (!cv_joinsplitscreen.value || splitservernode >= 0))
 		SendWeaponPref2();
 }
 

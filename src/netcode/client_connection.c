@@ -14,6 +14,8 @@
 #include "gamestate.h"
 #include "d_clisrv.h"
 #include "d_netfil.h"
+#include "net_command.h"
+#include "d_netcmd.h"
 #include "../d_main.h"
 #include "../f_finale.h"
 #include "../g_game.h"
@@ -53,6 +55,8 @@ static UINT16 cl_lastcheckedfilecount = 0;	// used for full file list
 boolean serverisfull = false; // lets us be aware if the server was full after we check files, but before downloading, so we can ask if the user still wants to download or not
 tic_t firstconnectattempttime = 0;
 UINT8 mynode;
+SINT8 splitservernode = -1;
+UINT8 splitmynode = UINT8_MAX;
 static void *snake = NULL;
 
 static const char *GetChatColorFromVideoFlag(INT32 flag)
@@ -850,7 +854,7 @@ boolean CL_SendJoin(void)
 			SRB2APPLICATION,
 			sizeof netbuffer->u.clientcfg.application);
 
-	if (splitscreen || botingame)
+	if (botingame || (splitscreen && !cv_joinsplitscreen.value))
 		localplayers++;
 	netbuffer->u.clientcfg.localplayers = localplayers;
 
@@ -868,6 +872,88 @@ boolean CL_SendJoin(void)
 	strncpy(netbuffer->u.clientcfg.names[1], player2name, MAXPLAYERNAME);
 
 	return HSendPacket(servernode, true, 0, sizeof (clientconfig_pak));
+}
+
+boolean CL_StartSplitConnection(void)
+{
+	char addressbuffer[128];
+	char *port;
+	char *hostname;
+	const char *nodeaddress;
+	SINT8 node;
+
+	if (!netgame || !client)
+		return true;
+	if (splitservernode >= 0)
+		return true;
+	if (cl_mode != CL_CONNECTED || !I_NetMakeSplitNodewPort || !I_GetNodeAddress)
+	{
+		CONS_Alert(CONS_WARNING, M_GetText("Online splitscreen is unavailable with this network connection.\n"));
+		return false;
+	}
+
+	nodeaddress = I_GetNodeAddress((UINT8)servernode);
+	if (!nodeaddress || !nodeaddress[0])
+	{
+		CONS_Alert(CONS_WARNING, M_GetText("Could not find the server address for the second player.\n"));
+		return false;
+	}
+
+	strlcpy(addressbuffer, nodeaddress, sizeof(addressbuffer));
+	hostname = I_NetSplitAddress(addressbuffer, &port);
+	if (!hostname || !hostname[0])
+	{
+		CONS_Alert(CONS_WARNING, M_GetText("Could not parse the server address for the second player.\n"));
+		return false;
+	}
+
+	node = I_NetMakeSplitNodewPort(hostname, port);
+	if (node < 0)
+	{
+		CONS_Alert(CONS_WARNING, M_GetText("Could not open a second network connection for splitscreen.\n"));
+		return false;
+	}
+
+	ResetNode(node);
+	splitservernode = node;
+	splitmynode = UINT8_MAX;
+
+	netbuffer->packettype = PT_CLIENTJOIN;
+	netbuffer->u.clientcfg.modversion = MODVERSION;
+	strncpy(netbuffer->u.clientcfg.application, SRB2APPLICATION,
+		sizeof(netbuffer->u.clientcfg.application));
+	netbuffer->u.clientcfg.localplayers = 1;
+	netbuffer->u.clientcfg.mode = 0;
+	netbuffer->u.clientcfg.names[1][0] = '\0';
+	CleanupPlayerName(1, cv_playername2.zstring);
+	strncpy(netbuffer->u.clientcfg.names[0], cv_playername2.zstring,
+		sizeof(netbuffer->u.clientcfg.names[0])-1);
+	netbuffer->u.clientcfg.names[0][sizeof(netbuffer->u.clientcfg.names[0])-1] = '\0';
+
+	if (!HSendPacket(node, true, 0, sizeof(clientconfig_pak)))
+	{
+		Net_CloseConnection(node);
+		CL_ResetSplitConnection();
+		return false;
+	}
+
+	return true;
+}
+
+void CL_ResetSplitConnection(void)
+{
+	CL_ResetSplitFileTransfer();
+	localtextcmd2[0] = 0;
+	splitservernode = -1;
+	splitmynode = UINT8_MAX;
+}
+
+void CL_SplitConnectionLost(void)
+{
+	CL_ResetSplitConnection();
+	splitscreen = false;
+	secondarydisplayplayer = consoleplayer;
+	R_ExecuteSetViewSize();
 }
 
 static void SendAskInfo(INT32 node)
@@ -1709,6 +1795,10 @@ static boolean CL_ServerConnectionTicker(const char *tmpsave, tic_t *oldtic, tic
 				break;
 
 		case CL_CONNECTED:
+			if (client && splitscreen && cv_joinsplitscreen.value
+				&& splitservernode < 0)
+				CL_AddSplitscreenPlayer();
+			break;
 		case CL_CONFIRMCONNECT: //logic is handled by M_ConfirmConnect
 		default:
 			break;
@@ -2070,6 +2160,18 @@ void PT_MoreFilesNeeded(SINT8 node)
 // Negative response of client join request
 void PT_ServerRefuse(SINT8 node)
 {
+	if (node == splitservernode)
+	{
+		CONS_Alert(CONS_WARNING, M_GetText("Second player could not join: %s\n"),
+			netbuffer->u.serverrefuse.reason);
+		Net_CloseConnection(node);
+		CL_ResetSplitConnection();
+		splitscreen = false;
+		secondarydisplayplayer = consoleplayer;
+		R_ExecuteSetViewSize();
+		return;
+	}
+
 	if (server && serverrunning)
 	{ // But wait I thought I'm the server?
 		Net_CloseConnection(node);
@@ -2107,6 +2209,25 @@ void PT_ServerRefuse(SINT8 node)
 // Positive response of client join request
 void PT_ServerCFG(SINT8 node)
 {
+	if (node == splitservernode)
+	{
+		if (server || !client || cl_mode != CL_CONNECTED
+			|| netbuffer->u.servercfg.serverplayer != serverplayer)
+		{
+			CONS_Alert(CONS_WARNING, M_GetText("The second player received an invalid server response.\n"));
+			Net_CloseConnection(node);
+			CL_ResetSplitConnection();
+			splitscreen = false;
+			secondarydisplayplayer = consoleplayer;
+			R_ExecuteSetViewSize();
+			return;
+		}
+
+		netnodes[(UINT8)node].ingame = true;
+		splitmynode = netbuffer->u.servercfg.clientnode;
+		return;
+	}
+
 	if (server && serverrunning && node != servernode)
 	{ // but wait I thought I'm the server?
 		Net_CloseConnection(node);

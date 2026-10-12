@@ -114,6 +114,9 @@ extern SINT8 I_NetMakeNode(const char *address);
 */
 extern SINT8 (*I_NetMakeNodewPort)(const char *address, const char *port);
 
+/** Open a second client connection using an independent local UDP port. */
+extern SINT8 (*I_NetMakeSplitNodewPort)(const char *address, const char *port);
+
 /**	\brief open connection
 */
 extern boolean (*I_NetOpenSocket)(void);

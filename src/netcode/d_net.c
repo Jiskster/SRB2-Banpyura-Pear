@@ -26,6 +26,7 @@
 #include "../w_wad.h"
 #include "d_netfil.h"
 #include "d_clisrv.h"
+#include "client_connection.h"
 #include "tic_command.h"
 #include "net_command.h"
 #include "../z_zone.h"
@@ -70,6 +71,7 @@ void (*I_NetSend)(void) = NULL;
 void (*I_NetCloseSocket)(void) = NULL;
 void (*I_NetFreeNodenum)(INT32 nodenum) = NULL;
 SINT8 (*I_NetMakeNodewPort)(const char *address, const char* port) = NULL;
+SINT8 (*I_NetMakeSplitNodewPort)(const char *address, const char* port) = NULL;
 boolean (*I_NetOpenSocket)(void) = NULL;
 boolean (*I_Ban) (INT32 node) = NULL;
 void (*I_ClearBans)(void) = NULL;
@@ -315,6 +317,14 @@ void Net_ConnectionTimeout(INT32 node)
 	if (nodes[node].flags & NF_TIMEOUT)
 		return;
 	nodes[node].flags |= NF_TIMEOUT;
+
+	if (client && node == splitservernode)
+	{
+		Net_CloseConnection(node | FORCECLOSE);
+		CL_SplitConnectionLost();
+		CONS_Alert(CONS_WARNING, M_GetText("The second player's server connection timed out.\n"));
+		return;
+	}
 
 	if (server)
 	{
@@ -984,6 +994,7 @@ boolean D_CheckNetGame(void)
 	I_NetCloseSocket = NULL;
 	I_NetFreeNodenum = Internal_FreeNodenum;
 	I_NetMakeNodewPort = NULL;
+	I_NetMakeSplitNodewPort = NULL;
 
 	hardware_MAXPACKETLENGTH = MAXPACKETLENGTH;
 	// I_InitNetwork sets doomcom and netgame

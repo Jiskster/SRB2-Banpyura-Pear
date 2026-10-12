@@ -944,6 +944,7 @@ static menuitem_t MP_MainMenu[] =
 	{IT_HEADER, NULL, "Join a game", NULL, 0},
 	{IT_STRING|IT_CALL,       NULL, "Server browser...",     M_ConnectMenuModChecks,          12},
 	{IT_STRING|IT_KEYHANDLER, NULL, "Specify server address:", M_HandleConnectIP,    		  22},
+	{IT_STRING|IT_CVAR,       NULL, "Join in split-screen",   &cv_joinsplitscreen,            34},
 	{IT_STRING|IT_CALL,       NULL, "Rejoin previous servers...",     M_RejoinMenuModChecks,          48},
 	{IT_HEADER, NULL, "Host a game", NULL, 67}, // + 16
 	{IT_STRING|IT_CALL,       NULL, "Internet/LAN...",       M_StartServerMenu,      79},

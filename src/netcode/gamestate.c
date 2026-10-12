@@ -14,6 +14,7 @@
 #include "d_netfil.h"
 #include "gamestate.h"
 #include "i_net.h"
+#include "client_connection.h"
 #include "protocol.h"
 #include "server_connection.h"
 #include "../am_map.h"
@@ -303,6 +304,13 @@ void PT_ReceivedGamestate(SINT8 node)
 
 void PT_WillResendGamestate(SINT8 node)
 {
+	if (node == splitservernode)
+	{
+		netbuffer->packettype = PT_CANRECEIVEGAMESTATE;
+		HSendPacket(node, true, 0, 0);
+		return;
+	}
+
 	(void)node;
 
 	char tmpsave[256];

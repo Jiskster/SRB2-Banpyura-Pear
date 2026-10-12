@@ -25,6 +25,7 @@ extern consvar_t cv_skin;
 extern consvar_t cv_playername2;
 extern consvar_t cv_playercolor2;
 extern consvar_t cv_skin2;
+extern consvar_t cv_joinsplitscreen;
 // saved versions of the above six
 extern consvar_t cv_defaultplayercolor;
 extern consvar_t cv_defaultskin;

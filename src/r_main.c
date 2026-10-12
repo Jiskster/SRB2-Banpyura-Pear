@@ -192,16 +192,6 @@ consvar_t cv_flashes = CVAR_INIT ("flashes", "On", CV_SAVE|CV_CLIENT, CV_OnOff, 
 
 void SplitScreen_OnChange(void)
 {
-	if (!cv_debug && netgame)
-	{
-		if (splitscreen)
-		{
-			CONS_Alert(CONS_NOTICE, M_GetText("Splitscreen not supported in netplay, sorry!\n"));
-			splitscreen = false;
-		}
-		return;
-	}
-
 	// recompute screen size
 	R_ExecuteSetViewSize();
 

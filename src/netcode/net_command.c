@@ -14,6 +14,8 @@
 #include "tic_command.h"
 #include "gamestate.h"
 #include "server_connection.h"
+#include "client_connection.h"
+#include "d_netcmd.h"
 #include "d_clisrv.h"
 #include "i_net.h"
 #include "../byteptr.h"
@@ -349,12 +351,14 @@ void CL_SendNetCommands(void)
 	}
 
 	// Send extra data if needed for player 2 (splitscreen)
-	if (localtextcmd2[0])
+	if (localtextcmd2[0]
+		&& (splitservernode >= 0 || !cv_joinsplitscreen.value))
 	{
-		netbuffer->packettype = PT_TEXTCMD2;
+		netbuffer->packettype = splitservernode >= 0 ? PT_TEXTCMD : PT_TEXTCMD2;
 		M_Memcpy(netbuffer->u.textcmd, localtextcmd2, localtextcmd2[0]+1);
 		// All extra data have been sent
-		if (HSendPacket(servernode, true, 0, localtextcmd2[0]+1)) // Send can fail...
+		INT32 node = splitservernode >= 0 ? splitservernode : servernode;
+		if (HSendPacket(node, true, 0, localtextcmd2[0]+1)) // Send can fail...
 			localtextcmd2[0] = 0;
 	}
 }

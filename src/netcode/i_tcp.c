@@ -167,6 +167,8 @@ static SOCKET_TYPE mysockets[MAXNETNODES+1] = {ERRSOCKET};
 static size_t mysocketses = 0;
 static int myfamily[MAXNETNODES+1] = {0};
 static SOCKET_TYPE nodesocket[MAXNETNODES+1] = {ERRSOCKET};
+static SOCKET_TYPE splitsocket = ERRSOCKET;
+static SINT8 splitnode = -1;
 static mysockaddr_t clientaddress[MAXNETNODES+1];
 static mysockaddr_t broadcastaddress[MAXNETNODES+1];
 static size_t broadcastaddresses = 0;
@@ -586,30 +588,37 @@ void Command_Numnodes(void)
 static boolean SOCK_Get(void)
 {
 	size_t i;
+	size_t socketcount = mysocketses + (splitsocket != (SOCKET_TYPE)ERRSOCKET);
 	int j;
 	ssize_t c;
 	mysockaddr_t fromaddress;
 	socklen_t fromlen;
+	SOCKET_TYPE socket;
 
-	for (size_t n = 0; n < mysocketses; n++)
+	for (size_t n = 0; n < socketcount; n++)
 	{
+		socket = (n < mysocketses) ? mysockets[n] : splitsocket;
 		fromlen = (socklen_t)sizeof(fromaddress);
-		c = recvfrom(mysockets[n], (char *)&doomcom->data, MAXPACKETLENGTH, 0,
+		c = recvfrom(socket, (char *)&doomcom->data, MAXPACKETLENGTH, 0,
 			(void *)&fromaddress, &fromlen);
 		if (c != ERRSOCKET)
 		{
 			// find remote node number
 			for (j = 1; j <= MAXNETNODES; j++) //include LAN
 			{
-				if (SOCK_cmpaddr(&fromaddress, &clientaddress[j], 0))
+				if (SOCK_cmpaddr(&fromaddress, &clientaddress[j], 0)
+					&& (nodesocket[j] == socket
+						|| (nodesocket[j] == (SOCKET_TYPE)ERRSOCKET && n < mysocketses)))
 				{
 					doomcom->remotenode = (INT16)j; // good packet from a game player
 					doomcom->datalength = (INT16)c;
-					nodesocket[j] = mysockets[n];
+					nodesocket[j] = socket;
 					return false;
 				}
 			}
 			// not found
+			if (n >= mysocketses)
+				continue; // The split socket is only for its already assigned server.
 
 			// find a free slot
 			j = getfreenode();
@@ -739,6 +748,12 @@ static void SOCK_FreeNodenum(INT32 numnode)
 	DEBFILE(va("Free node %d (%s)\n", numnode, SOCK_GetNodeAddress(numnode)));
 
 	nodeconnected[numnode] = false;
+	if (numnode == splitnode && splitsocket != (SOCKET_TYPE)ERRSOCKET)
+	{
+		close(splitsocket);
+		splitsocket = (SOCKET_TYPE)ERRSOCKET;
+		splitnode = -1;
+	}
 	nodesocket[numnode] = ERRSOCKET;
 
 	// put invalid address
@@ -1199,6 +1214,11 @@ boolean I_InitTcpDriver(void)
 
 static void SOCK_CloseSocket(void)
 {
+	if (splitsocket != (SOCKET_TYPE)ERRSOCKET)
+		close(splitsocket);
+	splitsocket = (SOCKET_TYPE)ERRSOCKET;
+	splitnode = -1;
+
 	for (size_t i=0; i < mysocketses; i++)
 	{
 		if (mysockets[i] != (SOCKET_TYPE)ERRSOCKET)
@@ -1273,6 +1293,82 @@ static SINT8 SOCK_NetMakeNodewPort(const char *address, const char *port)
 	return newnode;
 }
 
+static SINT8 SOCK_NetMakeSplitNodewPort(const char *address, const char *port)
+{
+	SINT8 newnode = -1;
+	struct my_addrinfo *ai = NULL, *runp, hints;
+	mysockaddr_t localaddress;
+	int gaie;
+	size_t i;
+
+	if (splitsocket != (SOCKET_TYPE)ERRSOCKET)
+		return -1;
+	if (!port || !port[0])
+		port = DEFAULTPORT;
+
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_flags = AI_ADDRCONFIG;
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_DGRAM;
+	hints.ai_protocol = IPPROTO_UDP;
+
+	gaie = I_getaddrinfo(address, port, &hints, &ai);
+	if (gaie != 0)
+		return -1;
+
+	for (runp = ai; runp != NULL; runp = runp->ai_next)
+	{
+		for (i = 0; i < mysocketses; i++)
+			if (runp->ai_addr->sa_family == myfamily[i])
+				break;
+		if (i < mysocketses)
+			break;
+	}
+
+	if (!runp)
+	{
+		I_freeaddrinfo(ai);
+		return -1;
+	}
+
+	newnode = getfreenode();
+	if (newnode < 0)
+	{
+		I_freeaddrinfo(ai);
+		return -1;
+	}
+
+	memset(&localaddress, 0, sizeof(localaddress));
+	localaddress.any.sa_family = runp->ai_addr->sa_family;
+	if (localaddress.any.sa_family == AF_INET)
+	{
+		localaddress.ip4.sin_family = AF_INET;
+		localaddress.ip4.sin_addr.s_addr = htonl(INADDR_ANY);
+	}
+#ifdef HAVE_IPV6
+	else if (localaddress.any.sa_family == AF_INET6)
+	{
+		localaddress.ip6.sin6_family = AF_INET6;
+		localaddress.ip6.sin6_addr = in6addr_any;
+	}
+#endif
+
+	splitsocket = UDP_Bind(localaddress.any.sa_family, &localaddress.any,
+		(socklen_t)runp->ai_addrlen);
+	if (splitsocket == (SOCKET_TYPE)ERRSOCKET)
+	{
+		nodeconnected[newnode] = false;
+		I_freeaddrinfo(ai);
+		return -1;
+	}
+
+	memcpy(&clientaddress[newnode], runp->ai_addr, runp->ai_addrlen);
+	nodesocket[newnode] = splitsocket;
+	splitnode = newnode;
+	I_freeaddrinfo(ai);
+	return newnode;
+}
+
 static boolean SOCK_OpenSocket(void)
 {
 	memset(clientaddress, 0, sizeof (clientaddress));
@@ -1286,6 +1382,7 @@ static boolean SOCK_OpenSocket(void)
 	I_NetCloseSocket = SOCK_CloseSocket;
 	I_NetFreeNodenum = SOCK_FreeNodenum;
 	I_NetMakeNodewPort = SOCK_NetMakeNodewPort;
+	I_NetMakeSplitNodewPort = SOCK_NetMakeSplitNodewPort;
 
 	// build the socket but close it first
 	SOCK_CloseSocket();

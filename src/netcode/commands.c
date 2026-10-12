@@ -465,7 +465,7 @@ void Command_connect(void)
 			CONS_Alert(CONS_ERROR, M_GetText("There is no network driver\n"));
 	}
 
-	splitscreen = false;
+	splitscreen = cv_joinsplitscreen.value;
 	SplitScreen_OnChange();
 	botingame = false;
 	botskin = 0;

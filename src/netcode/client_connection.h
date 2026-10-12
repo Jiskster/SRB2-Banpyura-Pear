@@ -48,12 +48,17 @@ extern cl_mode_t cl_mode;
 extern boolean serverisfull; //lets us be aware if the server was full after we check files, but before downloading, so we can ask if the user still wants to download or not
 extern tic_t firstconnectattempttime;
 extern UINT8 mynode; // my address pointofview server
+extern SINT8 splitservernode;
+extern UINT8 splitmynode;
 
 void CL_QueryServerList(msg_server_t *list);
 void CL_UpdateServerList(boolean internetsearch, INT32 room);
 
 void CL_ConnectToServer(void);
 boolean CL_SendJoin(void);
+boolean CL_StartSplitConnection(void);
+void CL_ResetSplitConnection(void);
+void CL_SplitConnectionLost(void);
 
 void PT_ServerInfo(SINT8 node);
 void PT_PlayerInfo(SINT8 node);
